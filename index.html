@@ -3,149 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador de Currículums Inteligente</title>
-  <!-- Tailwind CSS for styling -->
+  <title>Generador de Currículums Desde Cero</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts for typography -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <!-- React Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <!-- Babel for JSX compilation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
-  <!-- ReactToPrint for PDF generation -->
   <script src="https://unpkg.com/react-to-print@2.14.7/dist/index.umd.js"></script>
 </head>
 <body>
-  <!-- The root element where the React app will be mounted -->
-  <div id="root">Cargando aplicación...</div>
+  <div id="root">Cargando generador...</div>
 
   <script type="text/babel">
-    // --- HELPER COMPONENTS (Defined first to avoid scope issues) ---
+    // --- Initial Data Structure ---
+    const initialResumeState = {
+      personal: { name: '', email: '', phone: '', address: '', linkedin: '', portfolio: '', photo: null },
+      summary: '',
+      experience: [],
+      education: [],
+      skills: [],
+      languages: [],
+    };
+
+    // --- Reusable UI Components ---
     const FormSection = ({ title, children }) => (
-        <div className="p-6 bg-gray-50 rounded-lg shadow-md">
-            <h2 className="section-title">{title}</h2>
-            {children}
-        </div>
+      <div className="p-6 bg-gray-50 rounded-lg shadow-inner space-y-4">
+        <h2 className="text-xl font-semibold text-gray-800 border-b pb-2">{title}</h2>
+        {children}
+      </div>
     );
 
-    const InputField = ({ label, ...props }) => (
-        <div>
-            <label>{label}</label>
-            <input {...props} />
-        </div>
+    const Input = ({ label, name, value, onChange, ...props }) => (
+      <div>
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
+        <input id={name} name={name} value={value} onChange={onChange} {...props} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+      </div>
+    );
+    
+    const Textarea = ({ label, name, value, onChange, ...props }) => (
+      <div>
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
+        <textarea id={name} name={name} value={value} onChange={onChange} {...props} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+      </div>
     );
 
-    const Pill = ({ text }) => <span className="inline-block bg-gray-200 text-gray-800 text-sm font-medium mr-2 mb-2 px-3 py-1 rounded-full">{text}</span>;
-
-    const SingleColumnPreview = ({ resume, rules, hasContent }) => (
-        <React.Fragment>
-            <header className="text-center mb-6">
-                {rules.showPhoto && resume.personal.photo && <img src={resume.personal.photo} alt="Foto de perfil" className="w-28 h-28 object-cover rounded-full mx-auto mb-3 border-2 border-gray-300 shadow-lg" />}
-                <h1 className="text-3xl font-bold text-gray-900">{resume.personal.name || 'Tu Nombre'}</h1>
-                <p className="text-gray-600 text-sm break-words">
-                    {resume.personal.address}
-                    {resume.personal.address && (resume.personal.email || resume.personal.phone) ? ' | ' : ''}
-                    {resume.personal.email}
-                    {(resume.personal.email && resume.personal.phone) ? ' | ' : ''}
-                    {resume.personal.phone}
-                </p>
-                <p className="text-blue-600 text-sm break-words">
-                    {resume.personal.linkedin && <a href={`https://${resume.personal.linkedin.replace(/https?:\/\//,'')}`} target="_blank" rel="noopener noreferrer">{resume.personal.linkedin}</a>}
-                    {resume.personal.linkedin && resume.personal.portfolio ? ' | ' : ''}
-                    {resume.personal.portfolio && <a href={`https://${resume.personal.portfolio.replace(/https?:\/\//,'')}`} target="_blank" rel="noopener noreferrer">{resume.personal.portfolio}</a>}
-                </p>
-            </header>
-            
-            {hasContent('summary') && <section className="mb-5"><h3 className="text-xl font-semibold border-b pb-1 mb-2">Resumen Profesional</h3><p className="text-gray-700 whitespace-pre-wrap">{resume.summary}</p></section>}
-            {hasContent('experience') && <section className="mb-5"><h3 className="text-xl font-semibold border-b pb-1 mb-2">Experiencia Laboral</h3>{resume.experience.map(exp => exp.title && <div key={exp.id} className="mb-4"><h4 className="text-lg font-semibold">{exp.title}</h4><p className="italic">{exp.company} | {exp.location}</p><p className="text-sm text-gray-600">{exp.startDate} - {exp.endDate || 'Presente'}</p><ul className="list-disc ml-5 mt-1 whitespace-pre-wrap">{exp.description.split('\n').map((line, idx) => line.trim() && <li key={idx}>{line.replace(/^- ?/, '').trim()}</li>)}</ul></div>)}</section>}
-            {hasContent('education') && <section className="mb-5"><h3 className="text-xl font-semibold border-b pb-1 mb-2">Educación</h3>{resume.education.map(edu => edu.degree && <div key={edu.id} className="mb-4"><h4 className="text-lg font-semibold">{edu.degree}</h4><p className="italic">{edu.institution} | {edu.location}</p><p className="text-sm text-gray-600">{edu.startDate} - {edu.endDate}</p></div>)}</section>}
-            {hasContent('skills') && <section className="mb-5"><h3 className="text-xl font-semibold border-b pb-1 mb-2">Habilidades</h3><div>{resume.skills.split(',').map(skill => skill.trim() && <Pill key={skill} text={skill.trim()} />)}</div></section>}
-            {hasContent('languages') && <section className="mb-5"><h3 className="text-xl font-semibold border-b pb-1 mb-2">Idiomas</h3><div>{resume.languages.split(',').map(lang => lang.trim() && <Pill key={lang} text={lang.trim()} />)}</div></section>}
-            {hasContent('certifications') && <section className="mb-5"><h3 className="text-xl font-semibold border-b pb-1 mb-2">Certificaciones</h3><p className="text-gray-700 whitespace-pre-wrap">{resume.certifications}</p></section>}
-        </React.Fragment>
-    );
-
-    const TwoColumnPreview = ({ resume, rules, hasContent }) => (
-        <div className="flex flex-col md:flex-row gap-x-8">
-            {/* Left Column (Sidebar) */}
-            <div className="w-full md:w-1/3 text-center md:text-left">
-                {rules.showPhoto && resume.personal.photo && <img src={resume.personal.photo} alt="Foto de perfil" className="w-32 h-32 object-cover rounded-full mx-auto mb-4 border-2 border-gray-300 shadow-lg" />}
-                <div className="space-y-6">
-                    <section>
-                        <h3 className="text-lg font-bold text-blue-700 border-b-2 border-blue-200 pb-1 mb-2">Contacto</h3>
-                        <p className="text-sm break-words">{resume.personal.address}</p>
-                        <p className="text-sm break-words">{resume.personal.email}</p>
-                        <p className="text-sm break-words">{resume.personal.phone}</p>
-                        <p className="text-sm text-blue-600 break-words">{resume.personal.linkedin && <a href={`https://${resume.personal.linkedin.replace(/https?:\/\//,'')}`} target="_blank" rel="noopener noreferrer">{resume.personal.linkedin}</a>}</p>
-                        <p className="text-sm text-blue-600 break-words">{resume.personal.portfolio && <a href={`https://${resume.personal.portfolio.replace(/https?:\/\//,'')}`} target="_blank" rel="noopener noreferrer">{resume.personal.portfolio}</a>}</p>
-                    </section>
-                    {hasContent('skills') && <section><h3 className="text-lg font-bold text-blue-700 border-b-2 border-blue-200 pb-1 mb-2">Habilidades</h3><div className="flex flex-wrap justify-center md:justify-start">{resume.skills.split(',').map(skill => skill.trim() && <Pill key={skill} text={skill.trim()} />)}</div></section>}
-                    {hasContent('languages') && <section><h3 className="text-lg font-bold text-blue-700 border-b-2 border-blue-200 pb-1 mb-2">Idiomas</h3><div className="flex flex-wrap justify-center md:justify-start">{resume.languages.split(',').map(lang => lang.trim() && <Pill key={lang} text={lang.trim()} />)}</div></section>}
-                </div>
-            </div>
-            {/* Right Column (Main Content) */}
-            <div className="w-full md:w-2/3 mt-6 md:mt-0">
-                 <header className="text-center md:text-left mb-6">
-                    <h1 className="text-4xl font-extrabold text-gray-900">{resume.personal.name || 'Tu Nombre'}</h1>
-                </header>
-                {hasContent('summary') && <section className="mb-5"><h3 className="text-xl font-semibold border-b pb-1 mb-2">Resumen Profesional</h3><p className="text-gray-700 whitespace-pre-wrap">{resume.summary}</p></section>}
-                {hasContent('experience') && <section className="mb-5"><h3 className="text-xl font-semibold border-b pb-1 mb-2">Experiencia Laboral</h3>{resume.experience.map(exp => exp.title && <div key={exp.id} className="mb-4"><h4 className="text-lg font-semibold">{exp.title}</h4><p className="italic">{exp.company} | {exp.location}</p><p className="text-sm text-gray-600">{exp.startDate} - {exp.endDate || 'Presente'}</p><ul className="list-disc ml-5 mt-1 whitespace-pre-wrap">{exp.description.split('\n').map((line, idx) => line.trim() && <li key={idx}>{line.replace(/^- ?/, '').trim()}</li>)}</ul></div>)}</section>}
-                {hasContent('education') && <section className="mb-5"><h3 className="text-xl font-semibold border-b pb-1 mb-2">Educación</h3>{resume.education.map(edu => edu.degree && <div key={edu.id} className="mb-4"><h4 className="text-lg font-semibold">{edu.degree}</h4><p className="italic">{edu.institution} | {edu.location}</p><p className="text-sm text-gray-600">{edu.startDate} - {edu.endDate}</p></div>)}</section>}
-                {hasContent('certifications') && <section className="mb-5"><h3 className="text-xl font-semibold border-b pb-1 mb-2">Certificaciones</h3><p className="text-gray-700 whitespace-pre-wrap">{resume.certifications}</p></section>}
-            </div>
-        </div>
-    );
-
-    // --- MAIN APP COMPONENT ---
+    // --- Main App Component ---
     const App = () => {
       const { useState, useRef } = React;
-      // CORRECTED: Safely access useReactToPrint and provide a fallback.
+      // CORRECTED: Safely access useReactToPrint by providing a fallback empty object.
       const { useReactToPrint } = window.ReactToPrint || {};
 
-      // State for all resume data
-      const [resume, setResume] = useState({
-        personal: { name: '', email: '', phone: '', linkedin: '', portfolio: '', address: '', photo: '', maritalStatus: '', dateOfBirth: '' },
-        summary: '',
-        experience: [{ id: Date.now(), title: '', company: '', location: '', startDate: '', endDate: '', description: '' }],
-        education: [{ id: Date.now(), degree: '', institution: '', location: '', startDate: '', endDate: '' }],
-        skills: '',
-        certifications: '',
-        languages: '',
-        references: 'Disponible bajo petición',
-      });
+      const [resume, setResume] = useState(initialResumeState);
+      const [layout, setLayout] = useState('single'); // 'single' or 'two'
+      const resumePreviewRef = useRef();
+
+      const handleChange = (e) => {
+        const { name, value, dataset } = e.target;
+        const { section, index } = dataset;
+
+        if (section === 'personal' || section === 'summary') {
+          setResume(prev => ({ ...prev, [section]: section === 'personal' ? { ...prev.personal, [name]: value } : value }));
+        } else {
+          setResume(prev => ({
+            ...prev,
+            [section]: prev[section].map((item, i) => i === parseInt(index) ? { ...item, [name]: value } : item)
+          }));
+        }
+      };
       
-      const [selectedCountry, setSelectedCountry] = useState('LATAM');
-      const [layout, setLayout] = useState('single');
-      const resumePreviewRef = useRef(null);
+      const handleSkillsChange = (e) => {
+          const skillsArray = e.target.value.split(',').map(skill => skill.trim());
+          setResume(prev => ({ ...prev, skills: skillsArray }));
+      };
       
-      const countryRules = {
-        US: { showPhoto: false, showMaritalStatus: false, showDateOfBirth: false, tips: ["Manténlo conciso (1-2 páginas).", "Usa palabras clave relevantes.", "Evita información personal (foto, edad, etc.)."] },
-        CA: { showPhoto: false, showMaritalStatus: false, showDateOfBirth: false, tips: ["Similar a EE. UU., sin foto.", "Enfócate en habilidades y logros."] },
-        UK: { showPhoto: false, showMaritalStatus: false, showDateOfBirth: false, tips: ["Máximo 2 páginas.", "Enfócate en logros cuantificables.", "Un resumen personal es común."] },
-        DE: { showPhoto: true, showMaritalStatus: true, showDateOfBirth: true, tips: ["Incluye una foto profesional.", "Incluye estado civil y fecha de nacimiento.", "Sé muy detallado."] },
-        ES: { showPhoto: true, showMaritalStatus: false, showDateOfBirth: true, tips: ["Una foto profesional es común.", "Detalla tus habilidades técnicas y blandas.", "Especifica tu nivel de idiomas."] },
-        LATAM: { showPhoto: true, showMaritalStatus: false, showDateOfBirth: true, tips: ["La foto y fecha de nacimiento son comunes.", "Detalla tu experiencia laboral.", "Adapta a cada país si es posible."] },
+      const handleLanguagesChange = (e) => {
+          const languagesArray = e.target.value.split(',').map(lang => lang.trim());
+          setResume(prev => ({ ...prev, languages: languagesArray }));
       };
 
-      const handleChange = (section, id, e) => {
-        const { name, value } = e.target;
-        setResume(prev => {
-          if (['summary', 'skills', 'certifications', 'languages', 'references'].includes(section)) {
-            return { ...prev, [section]: value };
-          }
-          if (section === 'personal') {
-            return { ...prev, personal: { ...prev.personal, [name]: value } };
-          }
-          return {
-            ...prev,
-            [section]: prev[section].map(item =>
-              item.id === id ? { ...item, [name]: value } : item
-            ),
-          };
-        });
-      };
-      
       const addItem = (section) => {
         const newItem = {
           experience: { id: Date.now(), title: '', company: '', location: '', startDate: '', endDate: '', description: '' },
@@ -153,161 +88,119 @@
         };
         setResume(prev => ({ ...prev, [section]: [...prev[section], newItem[section]] }));
       };
-      
-      const removeItem = (section, id) => {
-        setResume(prev => ({ ...prev, [section]: prev[section].filter(item => item.id !== id) }));
+
+      const removeItem = (section, index) => {
+        setResume(prev => ({ ...prev, [section]: prev[section].filter((_, i) => i !== index) }));
       };
       
       const handlePhotoUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
           const reader = new FileReader();
-          reader.onloadend = () => {
-            setResume(prev => ({ ...prev, personal: { ...prev.personal, photo: reader.result } }));
-          };
+          reader.onloadend = () => setResume(prev => ({ ...prev, personal: { ...prev.personal, photo: reader.result } }));
           reader.readAsDataURL(file);
         }
       };
 
-      // CORRECTED: Conditionally create the handlePrint function.
+      // CORRECTED: Conditionally define handlePrint only if useReactToPrint is available.
       const handlePrint = useReactToPrint ? useReactToPrint({
         content: () => resumePreviewRef.current,
-        documentTitle: `${resume.personal.name || 'Curriculum'}_${selectedCountry}`,
-        pageStyle: `@page { size: A4; margin: 1.5cm; } body { font-family: 'Inter', sans-serif; -webkit-print-color-adjust: exact; } .resume-preview { border: none !important; box-shadow: none !important; }`,
+        documentTitle: `CV-${resume.personal.name || 'Candidato'}`,
       }) : () => {
-        console.error("ReactToPrint is not loaded yet.");
-        alert("La función para generar PDF aún no está lista. Por favor, refresca la página.");
+          alert("La función de impresión no está lista. Por favor, espere un momento o refresque la página.");
+      };
+      
+      const resetForm = () => {
+        if (confirm('¿Estás seguro de que quieres borrar toda la información?')) {
+          setResume(initialResumeState);
+        }
       };
 
-      const currentCountryRules = countryRules[selectedCountry];
-      
-      const hasContent = (section) => {
-          const data = resume[section];
-          if (!data) return false;
-          if (Array.isArray(data)) {
-              if (section === 'experience') return data.some(item => item.title && item.company);
-              if (section === 'education') return data.some(item => item.degree && item.institution);
-          }
-          return String(data).trim().length > 0;
-      }
-
       return (
-        <div className="min-h-screen bg-gray-100 p-4 sm:p-8 font-inter">
-          <style>{`
-            .font-inter { font-family: 'Inter', sans-serif; }
-            input, textarea, select { -webkit-appearance: none; -moz-appearance: none; appearance: none; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); width: 100%; transition: all 0.15s ease-in-out; }
-            input:focus, textarea:focus, select:focus { border-color: #3b82f6; outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); }
-            label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem; }
-            .section-title { font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 1rem; border-bottom: 2px solid #3b82f6; padding-bottom: 0.5rem; }
-            .btn { padding: 0.5rem 1rem; color: white; font-weight: 500; border-radius: 0.375rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); transition: background-color 0.15s ease-in-out; cursor: pointer; text-align: center; }
-            .btn-primary { background-color: #2563eb; } .btn-primary:hover { background-color: #1d4ed8; } .btn-primary:disabled { background-color: #9ca3af; cursor: not-allowed; }
-            .btn-secondary { background-color: #4b5563; } .btn-secondary:hover { background-color: #374151; }
-            .btn-danger { background-color: #ef4444; font-size: 0.75rem; padding: 0.25rem 0.5rem; } .btn-danger:hover { background-color: #dc2626; }
-            .layout-btn { padding: 0.5rem 1rem; border: 2px solid #d1d5db; border-radius: 0.375rem; font-weight: 500; background-color: #f9fafb; cursor: pointer;}
-            .layout-btn-active { border-color: #3b82f6; background-color: #dbeafe; color: #1e40af; }
-          `}</style>
-          
-          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white p-6 sm:p-8 rounded-lg shadow-xl">
-            {/* Left side: The form to input data */}
-            <div className="space-y-6">
-              <h1 className="text-3xl font-bold text-gray-900">Generador de Currículums</h1>
-              
-              <FormSection title="1. Configuración General">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-md font-bold text-gray-700 mb-2">País de Destino</label>
-                        <select value={selectedCountry} onChange={(e) => setSelectedCountry(e.target.value)} className="w-full p-2 border-gray-300 rounded-lg">
-                          <optgroup label="América Latina"><option value="LATAM">América Latina (General)</option></optgroup>
-                          <optgroup label="América del Norte"><option value="US">Estados Unidos</option><option value="CA">Canadá</option></optgroup>
-                          <optgroup label="Europa"><option value="ES">España</option><option value="DE">Alemania</option><option value="UK">Reino Unido</option></optgroup>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-md font-bold text-gray-700 mb-2">Diseño del CV</label>
-                        <div className="flex space-x-2">
-                           <button onClick={() => setLayout('single')} className={`flex-1 layout-btn ${layout === 'single' ? 'layout-btn-active' : ''}`}>Una Columna</button>
-                           <button onClick={() => setLayout('two')} className={`flex-1 layout-btn ${layout === 'two' ? 'layout-btn-active' : ''}`}>Dos Columnas</button>
-                        </div>
-                    </div>
-                </div>
-              </FormSection>
+        <div className="min-h-screen bg-gray-200 p-4 sm:p-8 font-['Inter',_sans-serif]">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* --- FORM COLUMN --- */}
+            <div className="bg-white p-6 rounded-xl shadow-lg space-y-6">
+              <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold text-gray-800">Generador de CV</h1>
+                <button onClick={resetForm} className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 focus:outline-none">Reiniciar</button>
+              </div>
 
-              <FormSection title="2. Información Personal">
+              <FormSection title="1. Información Personal">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InputField label="Nombre Completo" name="name" value={resume.personal.name} onChange={(e) => handleChange('personal', null, e)} />
-                  <InputField label="Email" name="email" type="email" value={resume.personal.email} onChange={(e) => handleChange('personal', null, e)} />
-                  <InputField label="Teléfono" name="phone" type="tel" value={resume.personal.phone} onChange={(e) => handleChange('personal', null, e)} />
-                  <InputField label="Dirección" name="address" value={resume.personal.address} onChange={(e) => handleChange('personal', null, e)} placeholder="Ciudad, Provincia" />
-                  <InputField label="Perfil de LinkedIn" name="linkedin" type="url" value={resume.personal.linkedin} onChange={(e) => handleChange('personal', null, e)} placeholder="linkedin.com/in/usuario" />
-                  <InputField label="Portfolio/Sitio Web" name="portfolio" type="url" value={resume.personal.portfolio} onChange={(e) => handleChange('personal', null, e)} placeholder="github.com/usuario"/>
-                  {currentCountryRules.showDateOfBirth && <InputField label="Fecha de Nacimiento" name="dateOfBirth" type="date" value={resume.personal.dateOfBirth} onChange={(e) => handleChange('personal', null, e)} />}
-                  {currentCountryRules.showMaritalStatus && <InputField label="Estado Civil" name="maritalStatus" value={resume.personal.maritalStatus} onChange={(e) => handleChange('personal', null, e)} />}
-                  {currentCountryRules.showPhoto && <div><label>Foto de Perfil</label><input type="file" accept="image/*" onChange={handlePhotoUpload} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/></div>}
+                  <Input label="Nombre Completo" name="name" value={resume.personal.name} onChange={handleChange} data-section="personal" placeholder="Ej: Ana García"/>
+                  <Input label="Email" name="email" type="email" value={resume.personal.email} onChange={handleChange} data-section="personal" placeholder="ana.garcia@email.com"/>
+                  <Input label="Teléfono" name="phone" value={resume.personal.phone} onChange={handleChange} data-section="personal" />
+                  <Input label="Dirección" name="address" value={resume.personal.address} onChange={handleChange} data-section="personal" placeholder="Ciudad, País"/>
+                  <Input label="LinkedIn (URL)" name="linkedin" value={resume.personal.linkedin} onChange={handleChange} data-section="personal" />
+                  <Input label="Portfolio (URL)" name="portfolio" value={resume.personal.portfolio} onChange={handleChange} data-section="personal" />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Foto de Perfil</label>
+                    <input type="file" accept="image/*" onChange={handlePhotoUpload} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                  </div>
                 </div>
               </FormSection>
-              
-              <FormSection title="3. Resumen Profesional">
-                <textarea name="summary" value={resume.summary} onChange={(e) => handleChange('summary', null, e)} rows="4" placeholder="Un resumen conciso de tu experiencia y objetivos..."></textarea>
+
+              <FormSection title="2. Resumen Profesional">
+                <Textarea label="Tu resumen" name="summary" value={resume.summary} onChange={handleChange} data-section="summary" rows="4" placeholder="Describe brevemente tu perfil y objetivos..."/>
               </FormSection>
 
-              <FormSection title="4. Experiencia Laboral">
-                {resume.experience.map((exp) => (
-                  <div key={exp.id} className="mb-4 p-4 border rounded-md relative bg-white">
-                    <button type="button" onClick={() => removeItem('experience', exp.id)} className="btn btn-danger absolute top-2 right-2" title="Eliminar">X</button>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-                        <InputField label="Título del Puesto" name="title" value={exp.title} onChange={(e) => handleChange('experience', exp.id, e)} />
-                        <InputField label="Empresa" name="company" value={exp.company} onChange={(e) => handleChange('experience', exp.id, e)} />
-                        <InputField label="Ubicación" name="location" value={exp.location} onChange={(e) => handleChange('experience', exp.id, e)} />
-                        <div className="grid grid-cols-2 gap-2"><InputField label="Fecha Inicio" name="startDate" type="date" value={exp.startDate} onChange={(e) => handleChange('experience', exp.id, e)} /><InputField label="Fecha Fin" name="endDate" type="date" value={exp.endDate} onChange={(e) => handleChange('experience', exp.id, e)} /></div>
+              <FormSection title="3. Experiencia Laboral">
+                {resume.experience.map((exp, index) => (
+                  <div key={exp.id} className="p-4 border rounded-md space-y-3 relative bg-white">
+                    <button onClick={() => removeItem('experience', index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl font-bold">&times;</button>
+                    <Input label="Puesto" name="title" value={exp.title} onChange={handleChange} data-section="experience" data-index={index}/>
+                    <Input label="Empresa y Ubicación" name="company" value={exp.company} onChange={handleChange} data-section="experience" data-index={index} placeholder="Nombre Empresa | Ciudad"/>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Input label="Fecha de Inicio" name="startDate" value={exp.startDate} onChange={handleChange} data-section="experience" data-index={index} placeholder="Ej: Ene 2020"/>
+                      <Input label="Fecha de Fin" name="endDate" value={exp.endDate} onChange={handleChange} data-section="experience" data-index={index} placeholder="Ej: Dic 2022 o Actual"/>
                     </div>
-                    <textarea name="description" value={exp.description} onChange={(e) => handleChange('experience', exp.id, e)} rows="3" placeholder="- Logro 1...&#10;- Logro 2..."></textarea>
+                    <Textarea label="Descripción y Logros" name="description" value={exp.description} onChange={handleChange} data-section="experience" data-index={index} rows="3" placeholder="- Logro 1..."/>
                   </div>
                 ))}
-                <button type="button" onClick={() => addItem('experience')} className="btn btn-secondary mt-2">Añadir Experiencia</button>
+                <button onClick={() => addItem('experience')} className="w-full py-2 px-4 text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200">Añadir Experiencia</button>
               </FormSection>
 
-              <FormSection title="5. Educación">
-                {resume.education.map((edu) => (
-                    <div key={edu.id} className="mb-4 p-4 border rounded-md relative bg-white">
-                        <button type="button" onClick={() => removeItem('education', edu.id)} className="btn btn-danger absolute top-2 right-2" title="Eliminar">X</button>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-                            <InputField label="Título/Grado" name="degree" value={edu.degree} onChange={(e) => handleChange('education', edu.id, e)} />
-                            <InputField label="Institución" name="institution" value={edu.institution} onChange={(e) => handleChange('education', edu.id, e)} />
-                            <InputField label="Ubicación" name="location" value={edu.location} onChange={(e) => handleChange('education', edu.id, e)} />
-                             <div className="grid grid-cols-2 gap-2"><InputField label="Fecha Inicio" name="startDate" type="date" value={edu.startDate} onChange={(e) => handleChange('education', edu.id, e)} /><InputField label="Fecha Fin" name="endDate" type="date" value={edu.endDate} onChange={(e) => handleChange('education', edu.id, e)} /></div>
-                        </div>
+              <FormSection title="4. Educación">
+                 {resume.education.map((edu, index) => (
+                  <div key={edu.id} className="p-4 border rounded-md space-y-3 relative bg-white">
+                    <button onClick={() => removeItem('education', index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl font-bold">&times;</button>
+                    <Input label="Título Obtenido" name="degree" value={edu.degree} onChange={handleChange} data-section="education" data-index={index}/>
+                    <Input label="Institución y Ubicación" name="institution" value={edu.institution} onChange={handleChange} data-section="education" data-index={index}/>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Input label="Fecha de Inicio" name="startDate" value={edu.startDate} onChange={handleChange} data-section="education" data-index={index}/>
+                      <Input label="Fecha de Fin" name="endDate" value={edu.endDate} onChange={handleChange} data-section="education" data-index={index}/>
                     </div>
+                  </div>
                 ))}
-                <button type="button" onClick={() => addItem('education')} className="btn btn-secondary mt-2">Añadir Educación</button>
+                <button onClick={() => addItem('education')} className="w-full py-2 px-4 text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200">Añadir Educación</button>
               </FormSection>
-
-              <FormSection title="6. Otras Secciones">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><label>Habilidades (separadas por coma)</label><textarea name="skills" value={resume.skills} onChange={(e) => handleChange('skills', null, e)} rows="3" placeholder="React, Liderazgo, SQL..."></textarea></div>
-                    <div><label>Idiomas (separados por coma)</label><textarea name="languages" value={resume.languages} onChange={(e) => handleChange('languages', null, e)} rows="3" placeholder="Español (Nativo), Inglés (C1)..."></textarea></div>
-                    <div><label>Certificaciones</label><textarea name="certifications" value={resume.certifications} onChange={(e) => handleChange('certifications', null, e)} rows="2" placeholder="Scrum Master..."></textarea></div>
-                    <div><label>Referencias</label><input type="text" name="references" value={resume.references} onChange={(e) => handleChange('references', null, e)} /></div>
-                </div>
+              
+               <FormSection title="5. Habilidades e Idiomas">
+                <Textarea label="Habilidades (separadas por coma)" name="skills" value={resume.skills.join(', ')} onChange={handleSkillsChange} placeholder="HTML, CSS, JavaScript, Liderazgo..."/>
+                <Textarea label="Idiomas (separados por coma)" name="languages" value={resume.languages.join(', ')} onChange={handleLanguagesChange} placeholder="Español (Nativo), Inglés (Avanzado)..."/>
               </FormSection>
             </div>
 
-            {/* Right side: Preview, tips, and actions */}
-            <div className="space-y-6">
-               <div className="p-6 bg-yellow-50 rounded-lg shadow-md">
-                 <h2 className="section-title text-yellow-800 border-yellow-500">Consejos para tu CV ({selectedCountry})</h2>
-                 <ul className="list-disc pl-5 text-gray-700 space-y-1">{currentCountryRules.tips.map((tip, index) => <li key={index}>{tip}</li>)}</ul>
-               </div>
-              <div className="p-6 bg-white rounded-lg shadow-md border border-gray-200 sticky top-8">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="section-title !m-0 !p-0 !border-0">Vista Previa</h2>
-                    <button onClick={handlePrint} className="btn btn-primary" disabled={!useReactToPrint}>Descargar PDF</button>
+            {/* --- PREVIEW COLUMN --- */}
+            <div className="sticky top-8 self-start">
+              <div className="bg-white p-6 rounded-xl shadow-lg space-y-4">
+                <h2 className="text-2xl font-bold text-gray-800">Vista Previa y Descarga</h2>
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm font-medium text-gray-700">Diseño:</span>
+                  <button onClick={() => setLayout('single')} className={`px-4 py-2 text-sm rounded-lg ${layout === 'single' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>1 Columna</button>
+                  <button onClick={() => setLayout('two')} className={`px-4 py-2 text-sm rounded-lg ${layout === 'two' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>2 Columnas</button>
                 </div>
-                <div ref={resumePreviewRef} className="resume-preview p-6 border border-dashed rounded-md bg-white min-h-[600px] overflow-auto">
-                    {layout === 'single' 
-                        ? <SingleColumnPreview resume={resume} rules={currentCountryRules} hasContent={hasContent} />
-                        : <TwoColumnPreview resume={resume} rules={currentCountryRules} hasContent={hasContent} />
-                    }
+                <div className="border border-dashed border-gray-300 p-4 rounded-lg bg-gray-50 min-h-[500px] max-h-[70vh] overflow-auto">
+                    <div ref={resumePreviewRef} className="p-8 bg-white text-gray-800">
+                        {/* A simple router to show the selected layout */}
+                        {layout === 'single' ? <SingleColumnPreview resume={resume} /> : <TwoColumnPreview resume={resume} />}
+                    </div>
                 </div>
+                {/* CORRECTED: The button is disabled if useReactToPrint is not available. */}
+                <button onClick={handlePrint} disabled={!useReactToPrint} className="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
+                  {useReactToPrint ? 'Descargar como PDF' : 'Cargando PDF...'}
+                </button>
               </div>
             </div>
           </div>
@@ -315,7 +208,67 @@
       );
     };
     
-    // CORRECTED: Ensure the app only renders after all scripts are loaded
+    // --- Preview Layouts ---
+    const SingleColumnPreview = ({ resume }) => {
+        const hasContent = (arr) => arr && arr.length > 0;
+        return(
+        <div>
+            <header className="text-center mb-6">
+                {resume.personal.photo && <img src={resume.personal.photo} className="w-32 h-32 rounded-full mx-auto mb-4 object-cover" />}
+                <h1 className="text-4xl font-bold">{resume.personal.name}</h1>
+                <p className="text-sm text-gray-600 mt-2">{resume.personal.address} &bull; {resume.personal.email} &bull; {resume.personal.phone}</p>
+                <p className="text-sm text-blue-600">{resume.personal.linkedin} {resume.personal.portfolio && `&bull; ${resume.personal.portfolio}`}</p>
+            </header>
+            
+            {resume.summary && <section className="mb-6"><h2 className="preview-h2">Resumen</h2><p className="preview-p">{resume.summary}</p></section>}
+            {hasContent(resume.experience) && <section className="mb-6"><h2 className="preview-h2">Experiencia</h2>{resume.experience.map(exp => <div key={exp.id} className="mb-4"><h3 className="font-bold">{exp.title}</h3><p className="italic text-sm">{exp.company}</p><p className="text-xs text-gray-500">{exp.startDate} - {exp.endDate}</p><p className="preview-p mt-1">{exp.description}</p></div>)}</section>}
+            {hasContent(resume.education) && <section className="mb-6"><h2 className="preview-h2">Educación</h2>{resume.education.map(edu => <div key={edu.id} className="mb-4"><h3 className="font-bold">{edu.degree}</h3><p className="italic text-sm">{edu.institution}</p><p className="text-xs text-gray-500">{edu.startDate} - {edu.endDate}</p></div>)}</section>}
+            {hasContent(resume.skills) && <section className="mb-6"><h2 className="preview-h2">Habilidades</h2><div className="flex flex-wrap gap-2">{resume.skills.map(s => s && <span key={s} className="pill">{s}</span>)}</div></section>}
+            {hasContent(resume.languages) && <section className="mb-6"><h2 className="preview-h2">Idiomas</h2><div className="flex flex-wrap gap-2">{resume.languages.map(l => l && <span key={l} className="pill">{l}</span>)}</div></section>}
+            
+            <style>{previewStyles}</style>
+        </div>
+    )};
+
+    const TwoColumnPreview = ({ resume }) => {
+        const hasContent = (arr) => arr && arr.length > 0;
+        return(
+        <div className="flex gap-8">
+            <div className="w-1/3">
+                {resume.personal.photo && <img src={resume.personal.photo} className="w-32 h-32 rounded-full mx-auto mb-4 object-cover" />}
+                <section className="mb-6">
+                    <h2 className="preview-h2-sidebar">Contacto</h2>
+                    <p className="preview-p-sidebar">{resume.personal.address}</p>
+                    <p className="preview-p-sidebar">{resume.personal.email}</p>
+                    <p className="preview-p-sidebar">{resume.personal.phone}</p>
+                    <p className="preview-p-sidebar text-blue-600">{resume.personal.linkedin}</p>
+                    <p className="preview-p-sidebar text-blue-600">{resume.personal.portfolio}</p>
+                </section>
+                {hasContent(resume.skills) && <section className="mb-6"><h2 className="preview-h2-sidebar">Habilidades</h2><div className="flex flex-wrap gap-2">{resume.skills.map(s => s && <span key={s} className="pill">{s}</span>)}</div></section>}
+                {hasContent(resume.languages) && <section className="mb-6"><h2 className="preview-h2-sidebar">Idiomas</h2><div className="flex flex-wrap gap-2">{resume.languages.map(l => l && <span key={l} className="pill">{l}</span>)}</div></section>}
+            </div>
+            <div className="w-2/3">
+                <header className="mb-6">
+                    <h1 className="text-4xl font-bold">{resume.personal.name}</h1>
+                </header>
+                {resume.summary && <section className="mb-6"><h2 className="preview-h2">Resumen</h2><p className="preview-p">{resume.summary}</p></section>}
+                {hasContent(resume.experience) && <section className="mb-6"><h2 className="preview-h2">Experiencia</h2>{resume.experience.map(exp => <div key={exp.id} className="mb-4"><h3 className="font-bold">{exp.title}</h3><p className="italic text-sm">{exp.company}</p><p className="text-xs text-gray-500">{exp.startDate} - {exp.endDate}</p><p className="preview-p mt-1">{exp.description}</p></div>)}</section>}
+                {hasContent(resume.education) && <section className="mb-6"><h2 className="preview-h2">Educación</h2>{resume.education.map(edu => <div key={edu.id} className="mb-4"><h3 className="font-bold">{edu.degree}</h3><p className="italic text-sm">{edu.institution}</p><p className="text-xs text-gray-500">{edu.startDate} - {edu.endDate}</p></div>)}</section>}
+            </div>
+            <style>{previewStyles}</style>
+        </div>
+    )};
+
+    const previewStyles = `
+        .preview-h2 { font-size: 1.125rem; font-weight: 700; border-bottom: 2px solid #e5e7eb; padding-bottom: 4px; margin-bottom: 12px; }
+        .preview-h2-sidebar { font-size: 1.125rem; font-weight: 700; border-bottom: 2px solid #dbeafe; padding-bottom: 4px; margin-bottom: 12px; color: #1e40af; }
+        .preview-p { font-size: 0.875rem; line-height: 1.6; color: #374151; white-space: pre-wrap; }
+        .preview-p-sidebar { font-size: 0.875rem; line-height: 1.6; color: #374151; word-break: break-all; }
+        .pill { background-color: #e5e7eb; color: #374151; padding: 4px 12px; border-radius: 9999px; font-size: 0.75rem; }
+    `;
+
+    // --- RENDER APP ---
+    // This ensures the app only renders after all external scripts (like ReactToPrint) are fully loaded.
     window.onload = function() {
       ReactDOM.render(<App />, document.getElementById('root'));
     };
