@@ -18,7 +18,7 @@
 </head>
 <body>
   <!-- The root element where the React app will be mounted -->
-  <div id="root"></div>
+  <div id="root">Cargando aplicación...</div>
 
   <script type="text/babel">
     // --- HELPER COMPONENTS (Defined first to avoid scope issues) ---
@@ -100,7 +100,7 @@
     // --- MAIN APP COMPONENT ---
     const App = () => {
       const { useState, useRef } = React;
-      // CORRECTED: Access ReactToPrint from the window object
+      // CORRECTED: Safely access useReactToPrint and provide a fallback.
       const { useReactToPrint } = window.ReactToPrint || {};
 
       // State for all resume data
@@ -115,12 +115,10 @@
         references: 'Disponible bajo petición',
       });
       
-      // State for UI controls
       const [selectedCountry, setSelectedCountry] = useState('LATAM');
       const [layout, setLayout] = useState('single');
       const resumePreviewRef = useRef(null);
       
-      // Country-specific rules for resume content
       const countryRules = {
         US: { showPhoto: false, showMaritalStatus: false, showDateOfBirth: false, tips: ["Manténlo conciso (1-2 páginas).", "Usa palabras clave relevantes.", "Evita información personal (foto, edad, etc.)."] },
         CA: { showPhoto: false, showMaritalStatus: false, showDateOfBirth: false, tips: ["Similar a EE. UU., sin foto.", "Enfócate en habilidades y logros."] },
@@ -130,7 +128,6 @@
         LATAM: { showPhoto: true, showMaritalStatus: false, showDateOfBirth: true, tips: ["La foto y fecha de nacimiento son comunes.", "Detalla tu experiencia laboral.", "Adapta a cada país si es posible."] },
       };
 
-      // Generic handler for form input changes
       const handleChange = (section, id, e) => {
         const { name, value } = e.target;
         setResume(prev => {
@@ -140,7 +137,6 @@
           if (section === 'personal') {
             return { ...prev, personal: { ...prev.personal, [name]: value } };
           }
-          // Handles dynamic sections like experience and education
           return {
             ...prev,
             [section]: prev[section].map(item =>
@@ -150,7 +146,6 @@
         });
       };
       
-      // Adds a new item to a dynamic section (experience/education)
       const addItem = (section) => {
         const newItem = {
           experience: { id: Date.now(), title: '', company: '', location: '', startDate: '', endDate: '', description: '' },
@@ -159,12 +154,10 @@
         setResume(prev => ({ ...prev, [section]: [...prev[section], newItem[section]] }));
       };
       
-      // Removes an item from a dynamic section
       const removeItem = (section, id) => {
         setResume(prev => ({ ...prev, [section]: prev[section].filter(item => item.id !== id) }));
       };
       
-      // Handles photo upload and converts it to Base64
       const handlePhotoUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -176,16 +169,18 @@
         }
       };
 
-      // Handler for the print/PDF functionality
+      // CORRECTED: Conditionally create the handlePrint function.
       const handlePrint = useReactToPrint ? useReactToPrint({
         content: () => resumePreviewRef.current,
         documentTitle: `${resume.personal.name || 'Curriculum'}_${selectedCountry}`,
         pageStyle: `@page { size: A4; margin: 1.5cm; } body { font-family: 'Inter', sans-serif; -webkit-print-color-adjust: exact; } .resume-preview { border: none !important; box-shadow: none !important; }`,
-      }) : () => console.error("La función de imprimir no está disponible.");
+      }) : () => {
+        console.error("ReactToPrint is not loaded yet.");
+        alert("La función para generar PDF aún no está lista. Por favor, refresca la página.");
+      };
 
       const currentCountryRules = countryRules[selectedCountry];
       
-      // Helper to check if a section has content to display
       const hasContent = (section) => {
           const data = resume[section];
           if (!data) return false;
@@ -196,18 +191,16 @@
           return String(data).trim().length > 0;
       }
 
-      // The main JSX returned by the App component
       return (
         <div className="min-h-screen bg-gray-100 p-4 sm:p-8 font-inter">
           <style>{`
-            /* Global Styles */
             .font-inter { font-family: 'Inter', sans-serif; }
             input, textarea, select { -webkit-appearance: none; -moz-appearance: none; appearance: none; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); width: 100%; transition: all 0.15s ease-in-out; }
             input:focus, textarea:focus, select:focus { border-color: #3b82f6; outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); }
             label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem; }
             .section-title { font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 1rem; border-bottom: 2px solid #3b82f6; padding-bottom: 0.5rem; }
             .btn { padding: 0.5rem 1rem; color: white; font-weight: 500; border-radius: 0.375rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); transition: background-color 0.15s ease-in-out; cursor: pointer; text-align: center; }
-            .btn-primary { background-color: #2563eb; } .btn-primary:hover { background-color: #1d4ed8; }
+            .btn-primary { background-color: #2563eb; } .btn-primary:hover { background-color: #1d4ed8; } .btn-primary:disabled { background-color: #9ca3af; cursor: not-allowed; }
             .btn-secondary { background-color: #4b5563; } .btn-secondary:hover { background-color: #374151; }
             .btn-danger { background-color: #ef4444; font-size: 0.75rem; padding: 0.25rem 0.5rem; } .btn-danger:hover { background-color: #dc2626; }
             .layout-btn { padding: 0.5rem 1rem; border: 2px solid #d1d5db; border-radius: 0.375rem; font-weight: 500; background-color: #f9fafb; cursor: pointer;}
@@ -322,8 +315,10 @@
       );
     };
     
-    // Mount the React app to the 'root' div
-    ReactDOM.render(<App />, document.getElementById('root'));
+    // CORRECTED: Ensure the app only renders after all scripts are loaded
+    window.onload = function() {
+      ReactDOM.render(<App />, document.getElementById('root'));
+    };
   </script>
 </body>
 </html>
