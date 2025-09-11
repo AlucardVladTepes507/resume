@@ -3,21 +3,74 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador de Currículums Desde Cero</title>
+  <title>Generador de CV Internacional</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
-  <script src="https://unpkg.com/react-to-print@2.14.7/dist/index.umd.js"></script>
 </head>
 <body>
   <div id="root">Cargando generador...</div>
 
   <script type="text/babel">
+    // --- Configuraciones Regionales ---
+    const regionalConfigs = {
+      latam: {
+        name: 'LATAM',
+        dateFormat: 'DD/MM/YYYY',
+        phoneFormat: '+XX (XXX) XXX-XXXX',
+        includePhoto: true,
+        colors: {
+          primary: '#dc2626', // Red-600
+          secondary: '#fbbf24', // Amber-400
+          accent: '#6b21a8' // Purple-800
+        },
+        font: 'Merriweather',
+        sections: ['personal', 'summary', 'experience', 'education', 'skills', 'languages'],
+        style: 'traditional'
+      },
+      canada: {
+        name: 'Canadá',
+        dateFormat: 'DD/MM/YYYY',
+        phoneFormat: '(XXX) XXX-XXXX',
+        includePhoto: false,
+        colors: {
+          primary: '#dc2626', // Red-600 (Canadian red)
+          secondary: '#1f2937', // Gray-800
+          accent: '#3b82f6' // Blue-500
+        },
+        font: 'Inter',
+        sections: ['personal', 'summary', 'experience', 'education', 'skills', 'languages'],
+        style: 'conservative'
+      },
+      usa: {
+        name: 'Estados Unidos',
+        dateFormat: 'MM/DD/YYYY',
+        phoneFormat: '(XXX) XXX-XXXX',
+        includePhoto: false,
+        colors: {
+          primary: '#1e40af', // Blue-800
+          secondary: '#6b7280', // Gray-500
+          accent: '#dc2626' // Red-600
+        },
+        font: 'Inter',
+        sections: ['personal', 'summary', 'experience', 'education', 'skills'],
+        style: 'minimal'
+      }
+    };
+
     // --- Initial Data Structure ---
     const initialResumeState = {
-      personal: { name: '', email: '', phone: '', address: '', linkedin: '', portfolio: '', photo: null },
+      personal: { 
+        name: '', 
+        email: '', 
+        phone: '', 
+        address: '', 
+        linkedin: '', 
+        portfolio: '', 
+        photo: null 
+      },
       summary: '',
       experience: [],
       education: [],
@@ -25,254 +78,920 @@
       languages: [],
     };
 
-    // --- Reusable UI Components ---
-    const FormSection = ({ title, children }) => (
-      <div className="p-6 bg-gray-50 rounded-lg shadow-inner space-y-4">
-        <h2 className="text-xl font-semibold text-gray-800 border-b pb-2">{title}</h2>
-        {children}
-      </div>
-    );
+    // --- Utility Functions ---
+    const validateEmail = (email) => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    };
 
-    const Input = ({ label, name, value, onChange, ...props }) => (
-      <div>
-        <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
-        <input id={name} name={name} value={value} onChange={onChange} {...props} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
-      </div>
-    );
+    const validatePhone = (phone, region) => {
+      const phoneRegex = {
+        latam: /^\+\d{1,4}\s?\(\d{3}\)\s?\d{3}-\d{4}$/,
+        canada: /^\(\d{3}\)\s?\d{3}-\d{4}$/,
+        usa: /^\(\d{3}\)\s?\d{3}-\d{4}$/
+      };
+      return phoneRegex[region]?.test(phone) || phone === '';
+    };
+
+    const formatDateExample = (region) => {
+      const config = regionalConfigs[region];
+      const examples = {
+        'DD/MM/YYYY': 'Ej: 15/03/2020',
+        'MM/DD/YYYY': 'Ej: 03/15/2020'
+      };
+      return examples[config.dateFormat];
+    };
+
+    // --- Reusable UI Components ---
+    const FormSection = ({ title, children, region }) => {
+      const config = regionalConfigs[region];
+      return (
+        <div className="p-6 bg-gray-50 rounded-lg shadow-inner space-y-4">
+          <h2 className="text-xl font-semibold border-b pb-2" style={{ color: config.colors.primary }}>
+            {title}
+          </h2>
+          {children}
+        </div>
+      );
+    };
+
+    const Input = ({ label, name, value, onChange, error, region, ...props }) => {
+      const config = regionalConfigs[region];
+      return (
+        <div>
+          <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
+          <input 
+            id={name} 
+            name={name} 
+            value={value} 
+            onChange={onChange} 
+            {...props} 
+            className={`mt-1 block w-full px-3 py-2 bg-white border ${error ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent`}
+            style={{ 
+              focusRingColor: config.colors.primary,
+              '--tw-ring-color': config.colors.primary 
+            }}
+          />
+          {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+        </div>
+      );
+    };
     
-    const Textarea = ({ label, name, value, onChange, ...props }) => (
-      <div>
-        <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
-        <textarea id={name} name={name} value={value} onChange={onChange} {...props} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
-      </div>
-    );
+    const Textarea = ({ label, name, value, onChange, error, region, ...props }) => {
+      const config = regionalConfigs[region];
+      return (
+        <div>
+          <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
+          <textarea 
+            id={name} 
+            name={name} 
+            value={value} 
+            onChange={onChange} 
+            {...props} 
+            className={`mt-1 block w-full px-3 py-2 bg-white border ${error ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent`}
+            style={{ 
+              focusRingColor: config.colors.primary,
+              '--tw-ring-color': config.colors.primary 
+            }}
+          />
+          {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+        </div>
+      );
+    };
 
     // --- Main App Component ---
     const App = () => {
       const { useState, useRef } = React;
-      // CORRECTED: Safely access useReactToPrint by providing a fallback empty object.
-      const { useReactToPrint } = window.ReactToPrint || {};
 
       const [resume, setResume] = useState(initialResumeState);
-      const [layout, setLayout] = useState('single'); // 'single' or 'two'
+      const [layout, setLayout] = useState('single');
+      const [region, setRegion] = useState('latam');
+      const [errors, setErrors] = useState({});
       const resumePreviewRef = useRef();
+
+      const validateField = (name, value, section) => {
+        const newErrors = { ...errors };
+        
+        if (section === 'personal') {
+          switch (name) {
+            case 'email':
+              if (value && !validateEmail(value)) {
+                newErrors[`${section}.${name}`] = 'Email inválido';
+              } else {
+                delete newErrors[`${section}.${name}`];
+              }
+              break;
+            case 'phone':
+              if (value && !validatePhone(value, region)) {
+                newErrors[`${section}.${name}`] = `Formato: ${regionalConfigs[region].phoneFormat}`;
+              } else {
+                delete newErrors[`${section}.${name}`];
+              }
+              break;
+            case 'name':
+              if (!value.trim()) {
+                newErrors[`${section}.${name}`] = 'Nombre es requerido';
+              } else {
+                delete newErrors[`${section}.${name}`];
+              }
+              break;
+          }
+        }
+        
+        setErrors(newErrors);
+      };
 
       const handleChange = (e) => {
         const { name, value, dataset } = e.target;
         const { section, index } = dataset;
 
+        validateField(name, value, section);
+
         if (section === 'personal' || section === 'summary') {
-          setResume(prev => ({ ...prev, [section]: section === 'personal' ? { ...prev.personal, [name]: value } : value }));
+          setResume(prev => ({ 
+            ...prev, 
+            [section]: section === 'personal' ? { ...prev.personal, [name]: value } : value 
+          }));
         } else {
           setResume(prev => ({
             ...prev,
-            [section]: prev[section].map((item, i) => i === parseInt(index) ? { ...item, [name]: value } : item)
+            [section]: prev[section].map((item, i) => 
+              i === parseInt(index) ? { ...item, [name]: value } : item
+            )
           }));
         }
       };
       
       const handleSkillsChange = (e) => {
-          const skillsArray = e.target.value.split(',').map(skill => skill.trim());
-          setResume(prev => ({ ...prev, skills: skillsArray }));
+        const skillsArray = e.target.value.split(',').map(skill => skill.trim()).filter(skill => skill);
+        setResume(prev => ({ ...prev, skills: skillsArray }));
       };
       
       const handleLanguagesChange = (e) => {
-          const languagesArray = e.target.value.split(',').map(lang => lang.trim());
-          setResume(prev => ({ ...prev, languages: languagesArray }));
+        const languagesArray = e.target.value.split(',').map(lang => lang.trim()).filter(lang => lang);
+        setResume(prev => ({ ...prev, languages: languagesArray }));
       };
 
       const addItem = (section) => {
         const newItem = {
-          experience: { id: Date.now(), title: '', company: '', location: '', startDate: '', endDate: '', description: '' },
-          education: { id: Date.now(), degree: '', institution: '', location: '', startDate: '', endDate: '' },
+          experience: { 
+            id: Date.now(), 
+            title: '', 
+            company: '', 
+            location: '', 
+            startDate: '', 
+            endDate: '', 
+            description: '' 
+          },
+          education: { 
+            id: Date.now(), 
+            degree: '', 
+            institution: '', 
+            location: '', 
+            startDate: '', 
+            endDate: '' 
+          },
         };
         setResume(prev => ({ ...prev, [section]: [...prev[section], newItem[section]] }));
       };
 
       const removeItem = (section, index) => {
-        setResume(prev => ({ ...prev, [section]: prev[section].filter((_, i) => i !== index) }));
+        setResume(prev => ({ 
+          ...prev, 
+          [section]: prev[section].filter((_, i) => i !== index) 
+        }));
       };
       
       const handlePhotoUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
           const reader = new FileReader();
-          reader.onloadend = () => setResume(prev => ({ ...prev, personal: { ...prev.personal, photo: reader.result } }));
+          reader.onloadend = () => {
+            setResume(prev => ({ 
+              ...prev, 
+              personal: { ...prev.personal, photo: reader.result } 
+            }));
+          };
           reader.readAsDataURL(file);
         }
       };
 
-      // CORRECTED: Conditionally define handlePrint only if useReactToPrint is available.
-      const handlePrint = useReactToPrint ? useReactToPrint({
-        content: () => resumePreviewRef.current,
-        documentTitle: `CV-${resume.personal.name || 'Candidato'}`,
-      }) : () => {
-          alert("La función de impresión no está lista. Por favor, espere un momento o refresque la página.");
+      const handlePrint = () => {
+        window.print();
       };
       
       const resetForm = () => {
         if (confirm('¿Estás seguro de que quieres borrar toda la información?')) {
           setResume(initialResumeState);
+          setErrors({});
         }
       };
 
+      const currentConfig = regionalConfigs[region];
+
       return (
-        <div className="min-h-screen bg-gray-200 p-4 sm:p-8 font-['Inter',_sans-serif]">
+        <div className="min-h-screen bg-gray-100 p-4 sm:p-8" style={{ fontFamily: currentConfig.font }}>
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
             {/* --- FORM COLUMN --- */}
             <div className="bg-white p-6 rounded-xl shadow-lg space-y-6">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center flex-wrap gap-4">
                 <h1 className="text-3xl font-bold text-gray-800">Generador de CV</h1>
-                <button onClick={resetForm} className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 focus:outline-none">Reiniciar</button>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={resetForm} 
+                    className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 focus:outline-none"
+                  >
+                    Reiniciar
+                  </button>
+                </div>
               </div>
 
-              <FormSection title="1. Información Personal">
+              {/* Selector de Región */}
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h3 className="text-lg font-semibold mb-3" style={{ color: currentConfig.colors.primary }}>
+                  Formato Regional
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {Object.entries(regionalConfigs).map(([key, config]) => (
+                    <button
+                      key={key}
+                      onClick={() => setRegion(key)}
+                      className={`px-4 py-2 text-sm rounded-lg transition-colors ${
+                        region === key 
+                          ? 'text-white' 
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
+                      }`}
+                      style={{ 
+                        backgroundColor: region === key ? config.colors.primary : undefined 
+                      }}
+                    >
+                      {config.name}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-3 text-sm text-gray-600">
+                  <p><strong>Fecha:</strong> {currentConfig.dateFormat}</p>
+                  <p><strong>Teléfono:</strong> {currentConfig.phoneFormat}</p>
+                  <p><strong>Foto:</strong> {currentConfig.includePhoto ? 'Incluida' : 'No recomendada'}</p>
+                </div>
+              </div>
+
+              <FormSection title="1. Información Personal" region={region}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input label="Nombre Completo" name="name" value={resume.personal.name} onChange={handleChange} data-section="personal" placeholder="Ej: Ana García"/>
-                  <Input label="Email" name="email" type="email" value={resume.personal.email} onChange={handleChange} data-section="personal" placeholder="ana.garcia@email.com"/>
-                  <Input label="Teléfono" name="phone" value={resume.personal.phone} onChange={handleChange} data-section="personal" />
-                  <Input label="Dirección" name="address" value={resume.personal.address} onChange={handleChange} data-section="personal" placeholder="Ciudad, País"/>
-                  <Input label="LinkedIn (URL)" name="linkedin" value={resume.personal.linkedin} onChange={handleChange} data-section="personal" />
-                  <Input label="Portfolio (URL)" name="portfolio" value={resume.personal.portfolio} onChange={handleChange} data-section="personal" />
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Foto de Perfil</label>
-                    <input type="file" accept="image/*" onChange={handlePhotoUpload} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
-                  </div>
+                  <Input 
+                    label="Nombre Completo *" 
+                    name="name" 
+                    value={resume.personal.name} 
+                    onChange={handleChange} 
+                    data-section="personal" 
+                    placeholder="Ej: Ana García"
+                    error={errors['personal.name']}
+                    region={region}
+                  />
+                  <Input 
+                    label="Email *" 
+                    name="email" 
+                    type="email" 
+                    value={resume.personal.email} 
+                    onChange={handleChange} 
+                    data-section="personal" 
+                    placeholder="ana.garcia@email.com"
+                    error={errors['personal.email']}
+                    region={region}
+                  />
+                  <Input 
+                    label="Teléfono" 
+                    name="phone" 
+                    value={resume.personal.phone} 
+                    onChange={handleChange} 
+                    data-section="personal" 
+                    placeholder={currentConfig.phoneFormat}
+                    error={errors['personal.phone']}
+                    region={region}
+                  />
+                  <Input 
+                    label="Dirección" 
+                    name="address" 
+                    value={resume.personal.address} 
+                    onChange={handleChange} 
+                    data-section="personal" 
+                    placeholder="Ciudad, País"
+                    region={region}
+                  />
+                  <Input 
+                    label="LinkedIn (URL)" 
+                    name="linkedin" 
+                    value={resume.personal.linkedin} 
+                    onChange={handleChange} 
+                    data-section="personal" 
+                    placeholder="https://linkedin.com/in/tu-perfil"
+                    region={region}
+                  />
+                  <Input 
+                    label="Portfolio (URL)" 
+                    name="portfolio" 
+                    value={resume.personal.portfolio} 
+                    onChange={handleChange} 
+                    data-section="personal" 
+                    placeholder="https://tu-portfolio.com"
+                    region={region}
+                  />
+                  
+                  {currentConfig.includePhoto && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700">Foto de Perfil</label>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handlePhotoUpload} 
+                        className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Recomendado para formato {currentConfig.name}</p>
+                    </div>
+                  )}
+                  
+                  {!currentConfig.includePhoto && resume.personal.photo && (
+                    <div className="md:col-span-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-800">
+                        ⚠️ Las fotos no son recomendadas en currículums de {currentConfig.name} por políticas de diversidad e inclusión.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </FormSection>
 
-              <FormSection title="2. Resumen Profesional">
-                <Textarea label="Tu resumen" name="summary" value={resume.summary} onChange={handleChange} data-section="summary" rows="4" placeholder="Describe brevemente tu perfil y objetivos..."/>
+              <FormSection title="2. Resumen Profesional" region={region}>
+                <Textarea 
+                  label="Tu resumen profesional" 
+                  name="summary" 
+                  value={resume.summary} 
+                  onChange={handleChange} 
+                  data-section="summary" 
+                  rows="4" 
+                  placeholder="Describe brevemente tu perfil profesional, experiencia clave y objetivos..."
+                  region={region}
+                />
               </FormSection>
 
-              <FormSection title="3. Experiencia Laboral">
+              <FormSection title="3. Experiencia Laboral" region={region}>
                 {resume.experience.map((exp, index) => (
                   <div key={exp.id} className="p-4 border rounded-md space-y-3 relative bg-white">
-                    <button onClick={() => removeItem('experience', index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl font-bold">&times;</button>
-                    <Input label="Puesto" name="title" value={exp.title} onChange={handleChange} data-section="experience" data-index={index}/>
-                    <Input label="Empresa y Ubicación" name="company" value={exp.company} onChange={handleChange} data-section="experience" data-index={index} placeholder="Nombre Empresa | Ciudad"/>
+                    <button 
+                      onClick={() => removeItem('experience', index)} 
+                      className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl font-bold"
+                    >
+                      &times;
+                    </button>
+                    <Input 
+                      label="Puesto de Trabajo" 
+                      name="title" 
+                      value={exp.title} 
+                      onChange={handleChange} 
+                      data-section="experience" 
+                      data-index={index}
+                      placeholder="Ej: Desarrollador Frontend Senior"
+                      region={region}
+                    />
+                    <Input 
+                      label="Empresa y Ubicación" 
+                      name="company" 
+                      value={exp.company} 
+                      onChange={handleChange} 
+                      data-section="experience" 
+                      data-index={index} 
+                      placeholder="Empresa Tech S.A. | Ciudad, País"
+                      region={region}
+                    />
                     <div className="grid grid-cols-2 gap-4">
-                      <Input label="Fecha de Inicio" name="startDate" value={exp.startDate} onChange={handleChange} data-section="experience" data-index={index} placeholder="Ej: Ene 2020"/>
-                      <Input label="Fecha de Fin" name="endDate" value={exp.endDate} onChange={handleChange} data-section="experience" data-index={index} placeholder="Ej: Dic 2022 o Actual"/>
+                      <Input 
+                        label="Fecha de Inicio" 
+                        name="startDate" 
+                        value={exp.startDate} 
+                        onChange={handleChange} 
+                        data-section="experience" 
+                        data-index={index} 
+                        placeholder={formatDateExample(region)}
+                        region={region}
+                      />
+                      <Input 
+                        label="Fecha de Fin" 
+                        name="endDate" 
+                        value={exp.endDate} 
+                        onChange={handleChange} 
+                        data-section="experience" 
+                        data-index={index} 
+                        placeholder="Actual o fecha fin"
+                        region={region}
+                      />
                     </div>
-                    <Textarea label="Descripción y Logros" name="description" value={exp.description} onChange={handleChange} data-section="experience" data-index={index} rows="3" placeholder="- Logro 1..."/>
+                    <Textarea 
+                      label="Descripción y Logros" 
+                      name="description" 
+                      value={exp.description} 
+                      onChange={handleChange} 
+                      data-section="experience" 
+                      data-index={index} 
+                      rows="3" 
+                      placeholder="• Aumenté las ventas en un 25%&#10;• Lideré un equipo de 5 personas&#10;• Implementé nuevos procesos que redujeron costos"
+                      region={region}
+                    />
                   </div>
                 ))}
-                <button onClick={() => addItem('experience')} className="w-full py-2 px-4 text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200">Añadir Experiencia</button>
+                <button 
+                  onClick={() => addItem('experience')} 
+                  className="w-full py-2 px-4 text-sm font-medium text-white rounded-lg hover:opacity-90 transition-opacity"
+                  style={{ backgroundColor: currentConfig.colors.primary }}
+                >
+                  + Añadir Experiencia
+                </button>
               </FormSection>
 
-              <FormSection title="4. Educación">
-                 {resume.education.map((edu, index) => (
+              <FormSection title="4. Educación" region={region}>
+                {resume.education.map((edu, index) => (
                   <div key={edu.id} className="p-4 border rounded-md space-y-3 relative bg-white">
-                    <button onClick={() => removeItem('education', index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl font-bold">&times;</button>
-                    <Input label="Título Obtenido" name="degree" value={edu.degree} onChange={handleChange} data-section="education" data-index={index}/>
-                    <Input label="Institución y Ubicación" name="institution" value={edu.institution} onChange={handleChange} data-section="education" data-index={index}/>
+                    <button 
+                      onClick={() => removeItem('education', index)} 
+                      className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl font-bold"
+                    >
+                      &times;
+                    </button>
+                    <Input 
+                      label="Título o Grado Obtenido" 
+                      name="degree" 
+                      value={edu.degree} 
+                      onChange={handleChange} 
+                      data-section="education" 
+                      data-index={index}
+                      placeholder="Ej: Licenciatura en Ingeniería de Sistemas"
+                      region={region}
+                    />
+                    <Input 
+                      label="Institución y Ubicación" 
+                      name="institution" 
+                      value={edu.institution} 
+                      onChange={handleChange} 
+                      data-section="education" 
+                      data-index={index}
+                      placeholder="Universidad Nacional | Ciudad, País"
+                      region={region}
+                    />
                     <div className="grid grid-cols-2 gap-4">
-                      <Input label="Fecha de Inicio" name="startDate" value={edu.startDate} onChange={handleChange} data-section="education" data-index={index}/>
-                      <Input label="Fecha de Fin" name="endDate" value={edu.endDate} onChange={handleChange} data-section="education" data-index={index}/>
+                      <Input 
+                        label="Fecha de Inicio" 
+                        name="startDate" 
+                        value={edu.startDate} 
+                        onChange={handleChange} 
+                        data-section="education" 
+                        data-index={index}
+                        placeholder={formatDateExample(region)}
+                        region={region}
+                      />
+                      <Input 
+                        label="Fecha de Graduación" 
+                        name="endDate" 
+                        value={edu.endDate} 
+                        onChange={handleChange} 
+                        data-section="education" 
+                        data-index={index}
+                        placeholder={formatDateExample(region)}
+                        region={region}
+                      />
                     </div>
                   </div>
                 ))}
-                <button onClick={() => addItem('education')} className="w-full py-2 px-4 text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200">Añadir Educación</button>
+                <button 
+                  onClick={() => addItem('education')} 
+                  className="w-full py-2 px-4 text-sm font-medium text-white rounded-lg hover:opacity-90 transition-opacity"
+                  style={{ backgroundColor: currentConfig.colors.primary }}
+                >
+                  + Añadir Educación
+                </button>
               </FormSection>
               
-               <FormSection title="5. Habilidades e Idiomas">
-                <Textarea label="Habilidades (separadas por coma)" name="skills" value={resume.skills.join(', ')} onChange={handleSkillsChange} placeholder="HTML, CSS, JavaScript, Liderazgo..."/>
-                <Textarea label="Idiomas (separados por coma)" name="languages" value={resume.languages.join(', ')} onChange={handleLanguagesChange} placeholder="Español (Nativo), Inglés (Avanzado)..."/>
+              <FormSection title="5. Habilidades" region={region}>
+                <Textarea 
+                  label="Habilidades (separadas por coma)" 
+                  name="skills" 
+                  value={resume.skills.join(', ')} 
+                  onChange={handleSkillsChange} 
+                  placeholder="HTML, CSS, JavaScript, React, Node.js, Liderazgo, Trabajo en equipo..."
+                  rows="3"
+                  region={region}
+                />
               </FormSection>
+
+              {currentConfig.sections.includes('languages') && (
+                <FormSection title="6. Idiomas" region={region}>
+                  <Textarea 
+                    label="Idiomas y Nivel (separados por coma)" 
+                    name="languages" 
+                    value={resume.languages.join(', ')} 
+                    onChange={handleLanguagesChange} 
+                    placeholder="Español (Nativo), Inglés (Avanzado), Francés (Intermedio)..."
+                    rows="2"
+                    region={region}
+                  />
+                </FormSection>
+              )}
             </div>
 
             {/* --- PREVIEW COLUMN --- */}
             <div className="sticky top-8 self-start">
               <div className="bg-white p-6 rounded-xl shadow-lg space-y-4">
-                <h2 className="text-2xl font-bold text-gray-800">Vista Previa y Descarga</h2>
-                <div className="flex items-center space-x-4">
+                <h2 className="text-2xl font-bold text-gray-800">Vista Previa</h2>
+                <div className="flex items-center space-x-4 flex-wrap gap-2">
                   <span className="text-sm font-medium text-gray-700">Diseño:</span>
-                  <button onClick={() => setLayout('single')} className={`px-4 py-2 text-sm rounded-lg ${layout === 'single' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>1 Columna</button>
-                  <button onClick={() => setLayout('two')} className={`px-4 py-2 text-sm rounded-lg ${layout === 'two' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>2 Columnas</button>
+                  <button 
+                    onClick={() => setLayout('single')} 
+                    className={`px-4 py-2 text-sm rounded-lg transition-colors ${
+                      layout === 'single' 
+                        ? 'text-white' 
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                    style={{ 
+                      backgroundColor: layout === 'single' ? currentConfig.colors.primary : undefined 
+                    }}
+                  >
+                    1 Columna
+                  </button>
+                  <button 
+                    onClick={() => setLayout('two')} 
+                    className={`px-4 py-2 text-sm rounded-lg transition-colors ${
+                      layout === 'two' 
+                        ? 'text-white' 
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                    style={{ 
+                      backgroundColor: layout === 'two' ? currentConfig.colors.primary : undefined 
+                    }}
+                  >
+                    2 Columnas
+                  </button>
                 </div>
+                
                 <div className="border border-dashed border-gray-300 p-4 rounded-lg bg-gray-50 min-h-[500px] max-h-[70vh] overflow-auto">
-                    <div ref={resumePreviewRef} className="p-8 bg-white text-gray-800">
-                        {/* A simple router to show the selected layout */}
-                        {layout === 'single' ? <SingleColumnPreview resume={resume} /> : <TwoColumnPreview resume={resume} />}
-                    </div>
+                  <div ref={resumePreviewRef} className="p-8 bg-white text-gray-800 print-content">
+                    {layout === 'single' ? 
+                      <SingleColumnPreview resume={resume} config={currentConfig} /> : 
+                      <TwoColumnPreview resume={resume} config={currentConfig} />
+                    }
+                  </div>
                 </div>
-                {/* CORRECTED: The button is disabled if useReactToPrint is not available. */}
-                <button onClick={handlePrint} disabled={!useReactToPrint} className="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
-                  {useReactToPrint ? 'Descargar como PDF' : 'Cargando PDF...'}
+                
+                <button 
+                  onClick={handlePrint} 
+                  className="w-full font-bold py-3 px-4 rounded-lg text-white transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: currentConfig.colors.accent }}
+                >
+                  🖨️ Imprimir / Guardar como PDF
                 </button>
+                
+                <div className="text-xs text-gray-500 space-y-1">
+                  <p>💡 <strong>Tip:</strong> Para guardar como PDF, usa Ctrl+P y selecciona "Guardar como PDF"</p>
+                  <p>🎨 <strong>Estilo:</strong> {currentConfig.name} - {currentConfig.style}</p>
+                </div>
               </div>
             </div>
           </div>
+          
+          {/* Print Styles */}
+          <style>{`
+            @media print {
+              body { margin: 0; }
+              .print-content { 
+                font-size: 12px; 
+                line-height: 1.4; 
+                color: #000 !important;
+                background: white !important;
+              }
+              .print-content * { 
+                color: #000 !important; 
+                background: transparent !important; 
+              }
+            }
+          `}</style>
         </div>
       );
     };
     
     // --- Preview Layouts ---
-    const SingleColumnPreview = ({ resume }) => {
-        const hasContent = (arr) => arr && arr.length > 0;
-        return(
-        <div>
-            <header className="text-center mb-6">
-                {resume.personal.photo && <img src={resume.personal.photo} className="w-32 h-32 rounded-full mx-auto mb-4 object-cover" />}
-                <h1 className="text-4xl font-bold">{resume.personal.name}</h1>
-                <p className="text-sm text-gray-600 mt-2">{resume.personal.address} &bull; {resume.personal.email} &bull; {resume.personal.phone}</p>
-                <p className="text-sm text-blue-600">{resume.personal.linkedin} {resume.personal.portfolio && `&bull; ${resume.personal.portfolio}`}</p>
+    const SingleColumnPreview = ({ resume, config }) => {
+      const hasContent = (arr) => arr && arr.length > 0;
+      const shouldShowPhoto = config.includePhoto && resume.personal.photo;
+      
+      return (
+        <div style={{ fontFamily: config.font }}>
+          <header className="text-center mb-6">
+            {shouldShowPhoto && (
+              <img 
+                src={resume.personal.photo} 
+                className="w-32 h-32 rounded-full mx-auto mb-4 object-cover shadow-lg" 
+                alt="Foto de perfil"
+              />
+            )}
+            <h1 
+              className="text-4xl font-bold mb-2" 
+              style={{ color: config.colors.primary }}
+            >
+              {resume.personal.name || 'Tu Nombre'}
+            </h1>
+            <div className="text-sm text-gray-600 space-y-1">
+              {resume.personal.address && <p>{resume.personal.address}</p>}
+              <div className="flex justify-center items-center gap-2 flex-wrap">
+                {resume.personal.email && <span>{resume.personal.email}</span>}
+                {resume.personal.email && resume.personal.phone && <span>•</span>}
+                {resume.personal.phone && <span>{resume.personal.phone}</span>}
+              </div>
+              <div className="flex justify-center items-center gap-2 flex-wrap">
+                {resume.personal.linkedin && (
+                  <span style={{ color: config.colors.accent }}>{resume.personal.linkedin}</span>
+                )}
+                {resume.personal.linkedin && resume.personal.portfolio && <span>•</span>}
+                {resume.personal.portfolio && (
+                  <span style={{ color: config.colors.accent }}>{resume.personal.portfolio}</span>
+                )}
+              </div>
+            </div>
+          </header>
+          
+          {resume.summary && (
+            <section className="mb-6">
+              <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
+                {config.name === 'Estados Unidos' ? 'Professional Summary' : 
+                 config.name === 'Canadá' ? 'Professional Summary' : 'Resumen Profesional'}
+              </h2>
+              <p className="preview-p">{resume.summary}</p>
+            </section>
+          )}
+          
+          {hasContent(resume.experience) && (
+            <section className="mb-6">
+              <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
+                {config.name === 'Estados Unidos' ? 'Professional Experience' : 
+                 config.name === 'Canadá' ? 'Professional Experience' : 'Experiencia Profesional'}
+              </h2>
+              {resume.experience.map(exp => (
+                <div key={exp.id} className="mb-4">
+                  <h3 className="font-bold text-lg" style={{ color: config.colors.secondary }}>
+                    {exp.title}
+                  </h3>
+                  <p className="italic text-sm font-medium">{exp.company}</p>
+                  <p className="text-xs text-gray-500 mb-2">{exp.startDate} - {exp.endDate}</p>
+                  <p className="preview-p whitespace-pre-line">{exp.description}</p>
+                </div>
+              ))}
+            </section>
+          )}
+          
+          {hasContent(resume.education) && (
+            <section className="mb-6">
+              <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
+                {config.name === 'Estados Unidos' ? 'Education' : 
+                 config.name === 'Canadá' ? 'Education' : 'Educación'}
+              </h2>
+              {resume.education.map(edu => (
+                <div key={edu.id} className="mb-4">
+                  <h3 className="font-bold" style={{ color: config.colors.secondary }}>
+                    {edu.degree}
+                  </h3>
+                  <p className="italic text-sm">{edu.institution}</p>
+                  <p className="text-xs text-gray-500">{edu.startDate} - {edu.endDate}</p>
+                </div>
+              ))}
+            </section>
+          )}
+          
+          {hasContent(resume.skills) && (
+            <section className="mb-6">
+              <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
+                {config.name === 'Estados Unidos' ? 'Skills' : 
+                 config.name === 'Canadá' ? 'Skills' : 'Habilidades'}
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {resume.skills.map((skill, index) => skill && (
+                  <span 
+                    key={index} 
+                    className="pill"
+                    style={{ backgroundColor: config.colors.primary + '20', color: config.colors.primary }}
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </section>
+          )}
+          
+          {hasContent(resume.languages) && config.sections.includes('languages') && (
+            <section className="mb-6">
+              <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
+                {config.name === 'Estados Unidos' ? 'Languages' : 
+                 config.name === 'Canadá' ? 'Languages / Langues' : 'Idiomas'}
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {resume.languages.map((language, index) => language && (
+                  <span 
+                    key={index} 
+                    className="pill"
+                    style={{ backgroundColor: config.colors.accent + '20', color: config.colors.accent }}
+                  >
+                    {language}
+                  </span>
+                ))}
+              </div>
+            </section>
+          )}
+          
+          <style>{getPreviewStyles(config)}</style>
+        </div>
+      );
+    };
+
+    const TwoColumnPreview = ({ resume, config }) => {
+      const hasContent = (arr) => arr && arr.length > 0;
+      const shouldShowPhoto = config.includePhoto && resume.personal.photo;
+      
+      return (
+        <div className="flex gap-8" style={{ fontFamily: config.font }}>
+          {/* Left Column */}
+          <div className="w-1/3 space-y-6">
+            {shouldShowPhoto && (
+              <div className="text-center">
+                <img 
+                  src={resume.personal.photo} 
+                  className="w-32 h-32 rounded-full mx-auto object-cover shadow-lg" 
+                  alt="Foto de perfil"
+                />
+              </div>
+            )}
+            
+            <section>
+              <h2 className="preview-h2-sidebar" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
+                {config.name === 'Estados Unidos' ? 'Contact' : 
+                 config.name === 'Canadá' ? 'Contact' : 'Contacto'}
+              </h2>
+              <div className="space-y-2">
+                {resume.personal.address && <p className="preview-p-sidebar">{resume.personal.address}</p>}
+                {resume.personal.email && <p className="preview-p-sidebar">{resume.personal.email}</p>}
+                {resume.personal.phone && <p className="preview-p-sidebar">{resume.personal.phone}</p>}
+                {resume.personal.linkedin && (
+                  <p className="preview-p-sidebar" style={{ color: config.colors.accent }}>
+                    {resume.personal.linkedin}
+                  </p>
+                )}
+                {resume.personal.portfolio && (
+                  <p className="preview-p-sidebar" style={{ color: config.colors.accent }}>
+                    {resume.personal.portfolio}
+                  </p>
+                )}
+              </div>
+            </section>
+            
+            {hasContent(resume.skills) && (
+              <section>
+                <h2 className="preview-h2-sidebar" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
+                  {config.name === 'Estados Unidos' ? 'Skills' : 
+                   config.name === 'Canadá' ? 'Skills' : 'Habilidades'}
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {resume.skills.map((skill, index) => skill && (
+                    <span 
+                      key={index} 
+                      className="pill-small"
+                      style={{ backgroundColor: config.colors.primary + '20', color: config.colors.primary }}
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </section>
+            )}
+            
+            {hasContent(resume.languages) && config.sections.includes('languages') && (
+              <section>
+                <h2 className="preview-h2-sidebar" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
+                  {config.name === 'Estados Unidos' ? 'Languages' : 
+                   config.name === 'Canadá' ? 'Languages' : 'Idiomas'}
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {resume.languages.map((language, index) => language && (
+                    <span 
+                      key={index} 
+                      className="pill-small"
+                      style={{ backgroundColor: config.colors.accent + '20', color: config.colors.accent }}
+                    >
+                      {language}
+                    </span>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+          
+          {/* Right Column */}
+          <div className="w-2/3 space-y-6">
+            <header>
+              <h1 className="text-4xl font-bold mb-2" style={{ color: config.colors.primary }}>
+                {resume.personal.name || 'Tu Nombre'}
+              </h1>
             </header>
             
-            {resume.summary && <section className="mb-6"><h2 className="preview-h2">Resumen</h2><p className="preview-p">{resume.summary}</p></section>}
-            {hasContent(resume.experience) && <section className="mb-6"><h2 className="preview-h2">Experiencia</h2>{resume.experience.map(exp => <div key={exp.id} className="mb-4"><h3 className="font-bold">{exp.title}</h3><p className="italic text-sm">{exp.company}</p><p className="text-xs text-gray-500">{exp.startDate} - {exp.endDate}</p><p className="preview-p mt-1">{exp.description}</p></div>)}</section>}
-            {hasContent(resume.education) && <section className="mb-6"><h2 className="preview-h2">Educación</h2>{resume.education.map(edu => <div key={edu.id} className="mb-4"><h3 className="font-bold">{edu.degree}</h3><p className="italic text-sm">{edu.institution}</p><p className="text-xs text-gray-500">{edu.startDate} - {edu.endDate}</p></div>)}</section>}
-            {hasContent(resume.skills) && <section className="mb-6"><h2 className="preview-h2">Habilidades</h2><div className="flex flex-wrap gap-2">{resume.skills.map(s => s && <span key={s} className="pill">{s}</span>)}</div></section>}
-            {hasContent(resume.languages) && <section className="mb-6"><h2 className="preview-h2">Idiomas</h2><div className="flex flex-wrap gap-2">{resume.languages.map(l => l && <span key={l} className="pill">{l}</span>)}</div></section>}
+            {resume.summary && (
+              <section>
+                <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
+                  {config.name === 'Estados Unidos' ? 'Professional Summary' : 
+                   config.name === 'Canadá' ? 'Professional Summary' : 'Resumen Profesional'}
+                </h2>
+                <p className="preview-p">{resume.summary}</p>
+              </section>
+            )}
             
-            <style>{previewStyles}</style>
+            {hasContent(resume.experience) && (
+              <section>
+                <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
+                  {config.name === 'Estados Unidos' ? 'Professional Experience' : 
+                   config.name === 'Canadá' ? 'Professional Experience' : 'Experiencia Profesional'}
+                </h2>
+                {resume.experience.map(exp => (
+                  <div key={exp.id} className="mb-4">
+                    <h3 className="font-bold text-lg" style={{ color: config.colors.secondary }}>
+                      {exp.title}
+                    </h3>
+                    <p className="italic text-sm font-medium">{exp.company}</p>
+                    <p className="text-xs text-gray-500 mb-2">{exp.startDate} - {exp.endDate}</p>
+                    <p className="preview-p whitespace-pre-line">{exp.description}</p>
+                  </div>
+                ))}
+              </section>
+            )}
+            
+            {hasContent(resume.education) && (
+              <section>
+                <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
+                  {config.name === 'Estados Unidos' ? 'Education' : 
+                   config.name === 'Canadá' ? 'Education' : 'Educación'}
+                </h2>
+                {resume.education.map(edu => (
+                  <div key={edu.id} className="mb-4">
+                    <h3 className="font-bold" style={{ color: config.colors.secondary }}>
+                      {edu.degree}
+                    </h3>
+                    <p className="italic text-sm">{edu.institution}</p>
+                    <p className="text-xs text-gray-500">{edu.startDate} - {edu.endDate}</p>
+                  </div>
+                ))}
+              </section>
+            )}
+          </div>
+          
+          <style>{getPreviewStyles(config)}</style>
         </div>
-    )};
+      );
+    };
 
-    const TwoColumnPreview = ({ resume }) => {
-        const hasContent = (arr) => arr && arr.length > 0;
-        return(
-        <div className="flex gap-8">
-            <div className="w-1/3">
-                {resume.personal.photo && <img src={resume.personal.photo} className="w-32 h-32 rounded-full mx-auto mb-4 object-cover" />}
-                <section className="mb-6">
-                    <h2 className="preview-h2-sidebar">Contacto</h2>
-                    <p className="preview-p-sidebar">{resume.personal.address}</p>
-                    <p className="preview-p-sidebar">{resume.personal.email}</p>
-                    <p className="preview-p-sidebar">{resume.personal.phone}</p>
-                    <p className="preview-p-sidebar text-blue-600">{resume.personal.linkedin}</p>
-                    <p className="preview-p-sidebar text-blue-600">{resume.personal.portfolio}</p>
-                </section>
-                {hasContent(resume.skills) && <section className="mb-6"><h2 className="preview-h2-sidebar">Habilidades</h2><div className="flex flex-wrap gap-2">{resume.skills.map(s => s && <span key={s} className="pill">{s}</span>)}</div></section>}
-                {hasContent(resume.languages) && <section className="mb-6"><h2 className="preview-h2-sidebar">Idiomas</h2><div className="flex flex-wrap gap-2">{resume.languages.map(l => l && <span key={l} className="pill">{l}</span>)}</div></section>}
-            </div>
-            <div className="w-2/3">
-                <header className="mb-6">
-                    <h1 className="text-4xl font-bold">{resume.personal.name}</h1>
-                </header>
-                {resume.summary && <section className="mb-6"><h2 className="preview-h2">Resumen</h2><p className="preview-p">{resume.summary}</p></section>}
-                {hasContent(resume.experience) && <section className="mb-6"><h2 className="preview-h2">Experiencia</h2>{resume.experience.map(exp => <div key={exp.id} className="mb-4"><h3 className="font-bold">{exp.title}</h3><p className="italic text-sm">{exp.company}</p><p className="text-xs text-gray-500">{exp.startDate} - {exp.endDate}</p><p className="preview-p mt-1">{exp.description}</p></div>)}</section>}
-                {hasContent(resume.education) && <section className="mb-6"><h2 className="preview-h2">Educación</h2>{resume.education.map(edu => <div key={edu.id} className="mb-4"><h3 className="font-bold">{edu.degree}</h3><p className="italic text-sm">{edu.institution}</p><p className="text-xs text-gray-500">{edu.startDate} - {edu.endDate}</p></div>)}</section>}
-            </div>
-            <style>{previewStyles}</style>
-        </div>
-    )};
-
-    const previewStyles = `
-        .preview-h2 { font-size: 1.125rem; font-weight: 700; border-bottom: 2px solid #e5e7eb; padding-bottom: 4px; margin-bottom: 12px; }
-        .preview-h2-sidebar { font-size: 1.125rem; font-weight: 700; border-bottom: 2px solid #dbeafe; padding-bottom: 4px; margin-bottom: 12px; color: #1e40af; }
-        .preview-p { font-size: 0.875rem; line-height: 1.6; color: #374151; white-space: pre-wrap; }
-        .preview-p-sidebar { font-size: 0.875rem; line-height: 1.6; color: #374151; word-break: break-all; }
-        .pill { background-color: #e5e7eb; color: #374151; padding: 4px 12px; border-radius: 9999px; font-size: 0.75rem; }
+    const getPreviewStyles = (config) => `
+      .preview-h2 { 
+        font-size: 1.125rem; 
+        font-weight: 700; 
+        border-bottom: 2px solid; 
+        padding-bottom: 4px; 
+        margin-bottom: 12px; 
+      }
+      .preview-h2-sidebar { 
+        font-size: 1rem; 
+        font-weight: 700; 
+        border-bottom: 2px solid; 
+        padding-bottom: 4px; 
+        margin-bottom: 12px; 
+      }
+      .preview-p { 
+        font-size: 0.875rem; 
+        line-height: 1.6; 
+        color: #374151; 
+        white-space: pre-wrap; 
+      }
+      .preview-p-sidebar { 
+        font-size: 0.875rem; 
+        line-height: 1.6; 
+        color: #374151; 
+        word-break: break-word; 
+      }
+      .pill { 
+        padding: 6px 12px; 
+        border-radius: 9999px; 
+        font-size: 0.75rem; 
+        font-weight: 500;
+      }
+      .pill-small { 
+        padding: 4px 8px; 
+        border-radius: 9999px; 
+        font-size: 0.7rem; 
+        font-weight: 500;
+      }
     `;
 
     // --- RENDER APP ---
-    // This ensures the app only renders after all external scripts (like ReactToPrint) are fully loaded.
-    window.onload = function() {
-      ReactDOM.render(<App />, document.getElementById('root'));
-    };
+    ReactDOM.render(<App />, document.getElementById('root'));
   </script>
 </body>
 </html>
-
