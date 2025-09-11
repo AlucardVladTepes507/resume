@@ -1,997 +1,629 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador de CV Internacional</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de CV Profesional</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .preview-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            color: #555;
+            margin: 20px 0 15px 0;
+            font-size: 1.3em;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-size: 14px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565 0%, #ed64a6 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        .experience-item, .education-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        /* Preview Styles */
+        #preview {
+            padding: 40px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            min-height: 600px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .cv-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .cv-name {
+            font-size: 2.5em;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .cv-contact {
+            color: #718096;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .cv-section {
+            margin-bottom: 30px;
+        }
+
+        .cv-section-title {
+            color: #4a5568;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .cv-item {
+            margin-bottom: 20px;
+        }
+
+        .cv-item-title {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1.1em;
+        }
+
+        .cv-item-subtitle {
+            color: #718096;
+            font-style: italic;
+            margin: 5px 0;
+        }
+
+        .cv-item-date {
+            color: #a0aec0;
+            font-size: 0.9em;
+        }
+
+        .cv-item-description {
+            color: #4a5568;
+            margin-top: 10px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .skill-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                display: block;
+            }
+            
+            .form-section {
+                display: none;
+            }
+            
+            .preview-section {
+                box-shadow: none;
+                padding: 0;
+                border-radius: 0;
+            }
+            
+            #preview {
+                border: none;
+                max-height: none;
+            }
+            
+            .button-group {
+                display: none;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .preview-section {
+                position: static;
+            }
+        }
+
+        .photo-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 20px;
+            display: block;
+            border: 4px solid #667eea;
+        }
+
+        #photoInput {
+            display: none;
+        }
+
+        .photo-upload-btn {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.3s;
+        }
+
+        .photo-upload-btn:hover {
+            background: #e0e0e0;
+        }
+    </style>
 </head>
 <body>
-  <div id="root">Cargando generador...</div>
-
-  <script type="text/babel">
-    // --- Configuraciones Regionales ---
-    const regionalConfigs = {
-      latam: {
-        name: 'LATAM',
-        dateFormat: 'DD/MM/YYYY',
-        phoneFormat: '+XX (XXX) XXX-XXXX',
-        includePhoto: true,
-        colors: {
-          primary: '#dc2626', // Red-600
-          secondary: '#fbbf24', // Amber-400
-          accent: '#6b21a8' // Purple-800
-        },
-        font: 'Merriweather',
-        sections: ['personal', 'summary', 'experience', 'education', 'skills', 'languages'],
-        style: 'traditional'
-      },
-      canada: {
-        name: 'Canadá',
-        dateFormat: 'DD/MM/YYYY',
-        phoneFormat: '(XXX) XXX-XXXX',
-        includePhoto: false,
-        colors: {
-          primary: '#dc2626', // Red-600 (Canadian red)
-          secondary: '#1f2937', // Gray-800
-          accent: '#3b82f6' // Blue-500
-        },
-        font: 'Inter',
-        sections: ['personal', 'summary', 'experience', 'education', 'skills', 'languages'],
-        style: 'conservative'
-      },
-      usa: {
-        name: 'Estados Unidos',
-        dateFormat: 'MM/DD/YYYY',
-        phoneFormat: '(XXX) XXX-XXXX',
-        includePhoto: false,
-        colors: {
-          primary: '#1e40af', // Blue-800
-          secondary: '#6b7280', // Gray-500
-          accent: '#dc2626' // Red-600
-        },
-        font: 'Inter',
-        sections: ['personal', 'summary', 'experience', 'education', 'skills'],
-        style: 'minimal'
-      }
-    };
-
-    // --- Initial Data Structure ---
-    const initialResumeState = {
-      personal: { 
-        name: '', 
-        email: '', 
-        phone: '', 
-        address: '', 
-        linkedin: '', 
-        portfolio: '', 
-        photo: null 
-      },
-      summary: '',
-      experience: [],
-      education: [],
-      skills: [],
-      languages: [],
-    };
-
-    // --- Utility Functions ---
-    const validateEmail = (email) => {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(email);
-    };
-
-    const validatePhone = (phone, region) => {
-      const phoneRegex = {
-        latam: /^\+\d{1,4}\s?\(\d{3}\)\s?\d{3}-\d{4}$/,
-        canada: /^\(\d{3}\)\s?\d{3}-\d{4}$/,
-        usa: /^\(\d{3}\)\s?\d{3}-\d{4}$/
-      };
-      return phoneRegex[region]?.test(phone) || phone === '';
-    };
-
-    const formatDateExample = (region) => {
-      const config = regionalConfigs[region];
-      const examples = {
-        'DD/MM/YYYY': 'Ej: 15/03/2020',
-        'MM/DD/YYYY': 'Ej: 03/15/2020'
-      };
-      return examples[config.dateFormat];
-    };
-
-    // --- Reusable UI Components ---
-    const FormSection = ({ title, children, region }) => {
-      const config = regionalConfigs[region];
-      return (
-        <div className="p-6 bg-gray-50 rounded-lg shadow-inner space-y-4">
-          <h2 className="text-xl font-semibold border-b pb-2" style={{ color: config.colors.primary }}>
-            {title}
-          </h2>
-          {children}
-        </div>
-      );
-    };
-
-    const Input = ({ label, name, value, onChange, error, region, ...props }) => {
-      const config = regionalConfigs[region];
-      return (
-        <div>
-          <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
-          <input 
-            id={name} 
-            name={name} 
-            value={value} 
-            onChange={onChange} 
-            {...props} 
-            className={`mt-1 block w-full px-3 py-2 bg-white border ${error ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent`}
-            style={{ 
-              focusRingColor: config.colors.primary,
-              '--tw-ring-color': config.colors.primary 
-            }}
-          />
-          {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
-        </div>
-      );
-    };
-    
-    const Textarea = ({ label, name, value, onChange, error, region, ...props }) => {
-      const config = regionalConfigs[region];
-      return (
-        <div>
-          <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
-          <textarea 
-            id={name} 
-            name={name} 
-            value={value} 
-            onChange={onChange} 
-            {...props} 
-            className={`mt-1 block w-full px-3 py-2 bg-white border ${error ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent`}
-            style={{ 
-              focusRingColor: config.colors.primary,
-              '--tw-ring-color': config.colors.primary 
-            }}
-          />
-          {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
-        </div>
-      );
-    };
-
-    // --- Main App Component ---
-    const App = () => {
-      const { useState, useRef } = React;
-
-      const [resume, setResume] = useState(initialResumeState);
-      const [layout, setLayout] = useState('single');
-      const [region, setRegion] = useState('latam');
-      const [errors, setErrors] = useState({});
-      const resumePreviewRef = useRef();
-
-      const validateField = (name, value, section) => {
-        const newErrors = { ...errors };
-        
-        if (section === 'personal') {
-          switch (name) {
-            case 'email':
-              if (value && !validateEmail(value)) {
-                newErrors[`${section}.${name}`] = 'Email inválido';
-              } else {
-                delete newErrors[`${section}.${name}`];
-              }
-              break;
-            case 'phone':
-              if (value && !validatePhone(value, region)) {
-                newErrors[`${section}.${name}`] = `Formato: ${regionalConfigs[region].phoneFormat}`;
-              } else {
-                delete newErrors[`${section}.${name}`];
-              }
-              break;
-            case 'name':
-              if (!value.trim()) {
-                newErrors[`${section}.${name}`] = 'Nombre es requerido';
-              } else {
-                delete newErrors[`${section}.${name}`];
-              }
-              break;
-          }
-        }
-        
-        setErrors(newErrors);
-      };
-
-      const handleChange = (e) => {
-        const { name, value, dataset } = e.target;
-        const { section, index } = dataset;
-
-        validateField(name, value, section);
-
-        if (section === 'personal' || section === 'summary') {
-          setResume(prev => ({ 
-            ...prev, 
-            [section]: section === 'personal' ? { ...prev.personal, [name]: value } : value 
-          }));
-        } else {
-          setResume(prev => ({
-            ...prev,
-            [section]: prev[section].map((item, i) => 
-              i === parseInt(index) ? { ...item, [name]: value } : item
-            )
-          }));
-        }
-      };
-      
-      const handleSkillsChange = (e) => {
-        const skillsArray = e.target.value.split(',').map(skill => skill.trim()).filter(skill => skill);
-        setResume(prev => ({ ...prev, skills: skillsArray }));
-      };
-      
-      const handleLanguagesChange = (e) => {
-        const languagesArray = e.target.value.split(',').map(lang => lang.trim()).filter(lang => lang);
-        setResume(prev => ({ ...prev, languages: languagesArray }));
-      };
-
-      const addItem = (section) => {
-        const newItem = {
-          experience: { 
-            id: Date.now(), 
-            title: '', 
-            company: '', 
-            location: '', 
-            startDate: '', 
-            endDate: '', 
-            description: '' 
-          },
-          education: { 
-            id: Date.now(), 
-            degree: '', 
-            institution: '', 
-            location: '', 
-            startDate: '', 
-            endDate: '' 
-          },
-        };
-        setResume(prev => ({ ...prev, [section]: [...prev[section], newItem[section]] }));
-      };
-
-      const removeItem = (section, index) => {
-        setResume(prev => ({ 
-          ...prev, 
-          [section]: prev[section].filter((_, i) => i !== index) 
-        }));
-      };
-      
-      const handlePhotoUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setResume(prev => ({ 
-              ...prev, 
-              personal: { ...prev.personal, photo: reader.result } 
-            }));
-          };
-          reader.readAsDataURL(file);
-        }
-      };
-
-      const handlePrint = () => {
-        window.print();
-      };
-      
-      const resetForm = () => {
-        if (confirm('¿Estás seguro de que quieres borrar toda la información?')) {
-          setResume(initialResumeState);
-          setErrors({});
-        }
-      };
-
-      const currentConfig = regionalConfigs[region];
-
-      return (
-        <div className="min-h-screen bg-gray-100 p-4 sm:p-8" style={{ fontFamily: currentConfig.font }}>
-          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="container">
+        <div class="form-section">
+            <h1>✨ Generador de CV Profesional</h1>
             
-            {/* --- FORM COLUMN --- */}
-            <div className="bg-white p-6 rounded-xl shadow-lg space-y-6">
-              <div className="flex justify-between items-center flex-wrap gap-4">
-                <h1 className="text-3xl font-bold text-gray-800">Generador de CV</h1>
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={resetForm} 
-                    className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 focus:outline-none"
-                  >
-                    Reiniciar
-                  </button>
+            <h2>📝 Información Personal</h2>
+            <div class="form-group">
+                <label for="fullName">Nombre Completo *</label>
+                <input type="text" id="fullName" placeholder="Ej: Juan Pérez García">
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" placeholder="juan@email.com">
                 </div>
-              </div>
-
-              {/* Selector de Región */}
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <h3 className="text-lg font-semibold mb-3" style={{ color: currentConfig.colors.primary }}>
-                  Formato Regional
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {Object.entries(regionalConfigs).map(([key, config]) => (
-                    <button
-                      key={key}
-                      onClick={() => setRegion(key)}
-                      className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-                        region === key 
-                          ? 'text-white' 
-                          : 'bg-white text-gray-700 hover:bg-gray-100'
-                      }`}
-                      style={{ 
-                        backgroundColor: region === key ? config.colors.primary : undefined 
-                      }}
-                    >
-                      {config.name}
-                    </button>
-                  ))}
+                <div class="form-group">
+                    <label for="phone">Teléfono</label>
+                    <input type="tel" id="phone" placeholder="+34 600 000 000">
                 </div>
-                <div className="mt-3 text-sm text-gray-600">
-                  <p><strong>Fecha:</strong> {currentConfig.dateFormat}</p>
-                  <p><strong>Teléfono:</strong> {currentConfig.phoneFormat}</p>
-                  <p><strong>Foto:</strong> {currentConfig.includePhoto ? 'Incluida' : 'No recomendada'}</p>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="location">Ubicación</label>
+                    <input type="text" id="location" placeholder="Madrid, España">
                 </div>
-              </div>
-
-              <FormSection title="1. Información Personal" region={region}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input 
-                    label="Nombre Completo *" 
-                    name="name" 
-                    value={resume.personal.name} 
-                    onChange={handleChange} 
-                    data-section="personal" 
-                    placeholder="Ej: Ana García"
-                    error={errors['personal.name']}
-                    region={region}
-                  />
-                  <Input 
-                    label="Email *" 
-                    name="email" 
-                    type="email" 
-                    value={resume.personal.email} 
-                    onChange={handleChange} 
-                    data-section="personal" 
-                    placeholder="ana.garcia@email.com"
-                    error={errors['personal.email']}
-                    region={region}
-                  />
-                  <Input 
-                    label="Teléfono" 
-                    name="phone" 
-                    value={resume.personal.phone} 
-                    onChange={handleChange} 
-                    data-section="personal" 
-                    placeholder={currentConfig.phoneFormat}
-                    error={errors['personal.phone']}
-                    region={region}
-                  />
-                  <Input 
-                    label="Dirección" 
-                    name="address" 
-                    value={resume.personal.address} 
-                    onChange={handleChange} 
-                    data-section="personal" 
-                    placeholder="Ciudad, País"
-                    region={region}
-                  />
-                  <Input 
-                    label="LinkedIn (URL)" 
-                    name="linkedin" 
-                    value={resume.personal.linkedin} 
-                    onChange={handleChange} 
-                    data-section="personal" 
-                    placeholder="https://linkedin.com/in/tu-perfil"
-                    region={region}
-                  />
-                  <Input 
-                    label="Portfolio (URL)" 
-                    name="portfolio" 
-                    value={resume.personal.portfolio} 
-                    onChange={handleChange} 
-                    data-section="personal" 
-                    placeholder="https://tu-portfolio.com"
-                    region={region}
-                  />
-                  
-                  {currentConfig.includePhoto && (
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700">Foto de Perfil</label>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={handlePhotoUpload} 
-                        className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Recomendado para formato {currentConfig.name}</p>
-                    </div>
-                  )}
-                  
-                  {!currentConfig.includePhoto && resume.personal.photo && (
-                    <div className="md:col-span-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-sm text-yellow-800">
-                        ⚠️ Las fotos no son recomendadas en currículums de {currentConfig.name} por políticas de diversidad e inclusión.
-                      </p>
-                    </div>
-                  )}
+                <div class="form-group">
+                    <label for="linkedin">LinkedIn</label>
+                    <input type="text" id="linkedin" placeholder="linkedin.com/in/juanperez">
                 </div>
-              </FormSection>
-
-              <FormSection title="2. Resumen Profesional" region={region}>
-                <Textarea 
-                  label="Tu resumen profesional" 
-                  name="summary" 
-                  value={resume.summary} 
-                  onChange={handleChange} 
-                  data-section="summary" 
-                  rows="4" 
-                  placeholder="Describe brevemente tu perfil profesional, experiencia clave y objetivos..."
-                  region={region}
-                />
-              </FormSection>
-
-              <FormSection title="3. Experiencia Laboral" region={region}>
-                {resume.experience.map((exp, index) => (
-                  <div key={exp.id} className="p-4 border rounded-md space-y-3 relative bg-white">
-                    <button 
-                      onClick={() => removeItem('experience', index)} 
-                      className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl font-bold"
-                    >
-                      &times;
-                    </button>
-                    <Input 
-                      label="Puesto de Trabajo" 
-                      name="title" 
-                      value={exp.title} 
-                      onChange={handleChange} 
-                      data-section="experience" 
-                      data-index={index}
-                      placeholder="Ej: Desarrollador Frontend Senior"
-                      region={region}
-                    />
-                    <Input 
-                      label="Empresa y Ubicación" 
-                      name="company" 
-                      value={exp.company} 
-                      onChange={handleChange} 
-                      data-section="experience" 
-                      data-index={index} 
-                      placeholder="Empresa Tech S.A. | Ciudad, País"
-                      region={region}
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                      <Input 
-                        label="Fecha de Inicio" 
-                        name="startDate" 
-                        value={exp.startDate} 
-                        onChange={handleChange} 
-                        data-section="experience" 
-                        data-index={index} 
-                        placeholder={formatDateExample(region)}
-                        region={region}
-                      />
-                      <Input 
-                        label="Fecha de Fin" 
-                        name="endDate" 
-                        value={exp.endDate} 
-                        onChange={handleChange} 
-                        data-section="experience" 
-                        data-index={index} 
-                        placeholder="Actual o fecha fin"
-                        region={region}
-                      />
-                    </div>
-                    <Textarea 
-                      label="Descripción y Logros" 
-                      name="description" 
-                      value={exp.description} 
-                      onChange={handleChange} 
-                      data-section="experience" 
-                      data-index={index} 
-                      rows="3" 
-                      placeholder="• Aumenté las ventas en un 25%&#10;• Lideré un equipo de 5 personas&#10;• Implementé nuevos procesos que redujeron costos"
-                      region={region}
-                    />
-                  </div>
-                ))}
-                <button 
-                  onClick={() => addItem('experience')} 
-                  className="w-full py-2 px-4 text-sm font-medium text-white rounded-lg hover:opacity-90 transition-opacity"
-                  style={{ backgroundColor: currentConfig.colors.primary }}
-                >
-                  + Añadir Experiencia
-                </button>
-              </FormSection>
-
-              <FormSection title="4. Educación" region={region}>
-                {resume.education.map((edu, index) => (
-                  <div key={edu.id} className="p-4 border rounded-md space-y-3 relative bg-white">
-                    <button 
-                      onClick={() => removeItem('education', index)} 
-                      className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl font-bold"
-                    >
-                      &times;
-                    </button>
-                    <Input 
-                      label="Título o Grado Obtenido" 
-                      name="degree" 
-                      value={edu.degree} 
-                      onChange={handleChange} 
-                      data-section="education" 
-                      data-index={index}
-                      placeholder="Ej: Licenciatura en Ingeniería de Sistemas"
-                      region={region}
-                    />
-                    <Input 
-                      label="Institución y Ubicación" 
-                      name="institution" 
-                      value={edu.institution} 
-                      onChange={handleChange} 
-                      data-section="education" 
-                      data-index={index}
-                      placeholder="Universidad Nacional | Ciudad, País"
-                      region={region}
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                      <Input 
-                        label="Fecha de Inicio" 
-                        name="startDate" 
-                        value={edu.startDate} 
-                        onChange={handleChange} 
-                        data-section="education" 
-                        data-index={index}
-                        placeholder={formatDateExample(region)}
-                        region={region}
-                      />
-                      <Input 
-                        label="Fecha de Graduación" 
-                        name="endDate" 
-                        value={edu.endDate} 
-                        onChange={handleChange} 
-                        data-section="education" 
-                        data-index={index}
-                        placeholder={formatDateExample(region)}
-                        region={region}
-                      />
-                    </div>
-                  </div>
-                ))}
-                <button 
-                  onClick={() => addItem('education')} 
-                  className="w-full py-2 px-4 text-sm font-medium text-white rounded-lg hover:opacity-90 transition-opacity"
-                  style={{ backgroundColor: currentConfig.colors.primary }}
-                >
-                  + Añadir Educación
-                </button>
-              </FormSection>
-              
-              <FormSection title="5. Habilidades" region={region}>
-                <Textarea 
-                  label="Habilidades (separadas por coma)" 
-                  name="skills" 
-                  value={resume.skills.join(', ')} 
-                  onChange={handleSkillsChange} 
-                  placeholder="HTML, CSS, JavaScript, React, Node.js, Liderazgo, Trabajo en equipo..."
-                  rows="3"
-                  region={region}
-                />
-              </FormSection>
-
-              {currentConfig.sections.includes('languages') && (
-                <FormSection title="6. Idiomas" region={region}>
-                  <Textarea 
-                    label="Idiomas y Nivel (separados por coma)" 
-                    name="languages" 
-                    value={resume.languages.join(', ')} 
-                    onChange={handleLanguagesChange} 
-                    placeholder="Español (Nativo), Inglés (Avanzado), Francés (Intermedio)..."
-                    rows="2"
-                    region={region}
-                  />
-                </FormSection>
-              )}
             </div>
 
-            {/* --- PREVIEW COLUMN --- */}
-            <div className="sticky top-8 self-start">
-              <div className="bg-white p-6 rounded-xl shadow-lg space-y-4">
-                <h2 className="text-2xl font-bold text-gray-800">Vista Previa</h2>
-                <div className="flex items-center space-x-4 flex-wrap gap-2">
-                  <span className="text-sm font-medium text-gray-700">Diseño:</span>
-                  <button 
-                    onClick={() => setLayout('single')} 
-                    className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-                      layout === 'single' 
-                        ? 'text-white' 
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                    style={{ 
-                      backgroundColor: layout === 'single' ? currentConfig.colors.primary : undefined 
-                    }}
-                  >
-                    1 Columna
-                  </button>
-                  <button 
-                    onClick={() => setLayout('two')} 
-                    className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-                      layout === 'two' 
-                        ? 'text-white' 
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                    style={{ 
-                      backgroundColor: layout === 'two' ? currentConfig.colors.primary : undefined 
-                    }}
-                  >
-                    2 Columnas
-                  </button>
-                </div>
-                
-                <div className="border border-dashed border-gray-300 p-4 rounded-lg bg-gray-50 min-h-[500px] max-h-[70vh] overflow-auto">
-                  <div ref={resumePreviewRef} className="p-8 bg-white text-gray-800 print-content">
-                    {layout === 'single' ? 
-                      <SingleColumnPreview resume={resume} config={currentConfig} /> : 
-                      <TwoColumnPreview resume={resume} config={currentConfig} />
-                    }
-                  </div>
-                </div>
-                
-                <button 
-                  onClick={handlePrint} 
-                  className="w-full font-bold py-3 px-4 rounded-lg text-white transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: currentConfig.colors.accent }}
-                >
-                  🖨️ Imprimir / Guardar como PDF
-                </button>
-                
-                <div className="text-xs text-gray-500 space-y-1">
-                  <p>💡 <strong>Tip:</strong> Para guardar como PDF, usa Ctrl+P y selecciona "Guardar como PDF"</p>
-                  <p>🎨 <strong>Estilo:</strong> {currentConfig.name} - {currentConfig.style}</p>
-                </div>
-              </div>
+            <div class="form-group">
+                <label for="photoInput">Foto de Perfil</label>
+                <label for="photoInput" class="photo-upload-btn">
+                    📷 Subir Foto
+                </label>
+                <input type="file" id="photoInput" accept="image/*">
             </div>
-          </div>
-          
-          {/* Print Styles */}
-          <style>{`
-            @media print {
-              body { margin: 0; }
-              .print-content { 
-                font-size: 12px; 
-                line-height: 1.4; 
-                color: #000 !important;
-                background: white !important;
-              }
-              .print-content * { 
-                color: #000 !important; 
-                background: transparent !important; 
-              }
+            
+            <h2>👤 Resumen Profesional</h2>
+            <div class="form-group">
+                <textarea id="summary" placeholder="Breve descripción sobre ti, tu experiencia y objetivos profesionales..."></textarea>
+            </div>
+            
+            <h2>💼 Experiencia Laboral</h2>
+            <div id="experienceContainer"></div>
+            <button onclick="addExperience()">+ Añadir Experiencia</button>
+            
+            <h2>🎓 Educación</h2>
+            <div id="educationContainer"></div>
+            <button onclick="addEducation()">+ Añadir Educación</button>
+            
+            <h2>🚀 Habilidades</h2>
+            <div class="form-group">
+                <textarea id="skills" placeholder="Separa tus habilidades con comas: JavaScript, Python, Liderazgo, etc."></textarea>
+            </div>
+            
+            <h2>🌍 Idiomas</h2>
+            <div class="form-group">
+                <textarea id="languages" placeholder="Ej: Español (Nativo), Inglés (Avanzado), Francés (Intermedio)"></textarea>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <h1>👁️ Vista Previa</h1>
+            <div id="preview">
+                <div class="cv-header">
+                    <div class="cv-name">Tu Nombre Aquí</div>
+                    <div class="cv-contact">Email • Teléfono • Ubicación</div>
+                </div>
+                <div style="text-align: center; color: #999; padding: 50px;">
+                    Completa el formulario para ver tu CV aquí
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="btn-success" onclick="window.print()">🖨️ Imprimir / PDF</button>
+                <button class="btn-danger" onclick="resetForm()">🗑️ Limpiar Todo</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let experienceCount = 0;
+        let educationCount = 0;
+        let photoData = null;
+
+        // Actualizar preview en tiempo real
+        document.addEventListener('input', updatePreview);
+        
+        // Foto upload
+        document.getElementById('photoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    photoData = reader.result;
+                    updatePreview();
+                };
+                reader.readAsDataURL(file);
             }
-          `}</style>
-        </div>
-      );
-    };
-    
-    // --- Preview Layouts ---
-    const SingleColumnPreview = ({ resume, config }) => {
-      const hasContent = (arr) => arr && arr.length > 0;
-      const shouldShowPhoto = config.includePhoto && resume.personal.photo;
-      
-      return (
-        <div style={{ fontFamily: config.font }}>
-          <header className="text-center mb-6">
-            {shouldShowPhoto && (
-              <img 
-                src={resume.personal.photo} 
-                className="w-32 h-32 rounded-full mx-auto mb-4 object-cover shadow-lg" 
-                alt="Foto de perfil"
-              />
-            )}
-            <h1 
-              className="text-4xl font-bold mb-2" 
-              style={{ color: config.colors.primary }}
-            >
-              {resume.personal.name || 'Tu Nombre'}
-            </h1>
-            <div className="text-sm text-gray-600 space-y-1">
-              {resume.personal.address && <p>{resume.personal.address}</p>}
-              <div className="flex justify-center items-center gap-2 flex-wrap">
-                {resume.personal.email && <span>{resume.personal.email}</span>}
-                {resume.personal.email && resume.personal.phone && <span>•</span>}
-                {resume.personal.phone && <span>{resume.personal.phone}</span>}
-              </div>
-              <div className="flex justify-center items-center gap-2 flex-wrap">
-                {resume.personal.linkedin && (
-                  <span style={{ color: config.colors.accent }}>{resume.personal.linkedin}</span>
-                )}
-                {resume.personal.linkedin && resume.personal.portfolio && <span>•</span>}
-                {resume.personal.portfolio && (
-                  <span style={{ color: config.colors.accent }}>{resume.personal.portfolio}</span>
-                )}
-              </div>
-            </div>
-          </header>
-          
-          {resume.summary && (
-            <section className="mb-6">
-              <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
-                {config.name === 'Estados Unidos' ? 'Professional Summary' : 
-                 config.name === 'Canadá' ? 'Professional Summary' : 'Resumen Profesional'}
-              </h2>
-              <p className="preview-p">{resume.summary}</p>
-            </section>
-          )}
-          
-          {hasContent(resume.experience) && (
-            <section className="mb-6">
-              <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
-                {config.name === 'Estados Unidos' ? 'Professional Experience' : 
-                 config.name === 'Canadá' ? 'Professional Experience' : 'Experiencia Profesional'}
-              </h2>
-              {resume.experience.map(exp => (
-                <div key={exp.id} className="mb-4">
-                  <h3 className="font-bold text-lg" style={{ color: config.colors.secondary }}>
-                    {exp.title}
-                  </h3>
-                  <p className="italic text-sm font-medium">{exp.company}</p>
-                  <p className="text-xs text-gray-500 mb-2">{exp.startDate} - {exp.endDate}</p>
-                  <p className="preview-p whitespace-pre-line">{exp.description}</p>
-                </div>
-              ))}
-            </section>
-          )}
-          
-          {hasContent(resume.education) && (
-            <section className="mb-6">
-              <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
-                {config.name === 'Estados Unidos' ? 'Education' : 
-                 config.name === 'Canadá' ? 'Education' : 'Educación'}
-              </h2>
-              {resume.education.map(edu => (
-                <div key={edu.id} className="mb-4">
-                  <h3 className="font-bold" style={{ color: config.colors.secondary }}>
-                    {edu.degree}
-                  </h3>
-                  <p className="italic text-sm">{edu.institution}</p>
-                  <p className="text-xs text-gray-500">{edu.startDate} - {edu.endDate}</p>
-                </div>
-              ))}
-            </section>
-          )}
-          
-          {hasContent(resume.skills) && (
-            <section className="mb-6">
-              <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
-                {config.name === 'Estados Unidos' ? 'Skills' : 
-                 config.name === 'Canadá' ? 'Skills' : 'Habilidades'}
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {resume.skills.map((skill, index) => skill && (
-                  <span 
-                    key={index} 
-                    className="pill"
-                    style={{ backgroundColor: config.colors.primary + '20', color: config.colors.primary }}
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </section>
-          )}
-          
-          {hasContent(resume.languages) && config.sections.includes('languages') && (
-            <section className="mb-6">
-              <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
-                {config.name === 'Estados Unidos' ? 'Languages' : 
-                 config.name === 'Canadá' ? 'Languages / Langues' : 'Idiomas'}
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {resume.languages.map((language, index) => language && (
-                  <span 
-                    key={index} 
-                    className="pill"
-                    style={{ backgroundColor: config.colors.accent + '20', color: config.colors.accent }}
-                  >
-                    {language}
-                  </span>
-                ))}
-              </div>
-            </section>
-          )}
-          
-          <style>{getPreviewStyles(config)}</style>
-        </div>
-      );
-    };
+        });
 
-    const TwoColumnPreview = ({ resume, config }) => {
-      const hasContent = (arr) => arr && arr.length > 0;
-      const shouldShowPhoto = config.includePhoto && resume.personal.photo;
-      
-      return (
-        <div className="flex gap-8" style={{ fontFamily: config.font }}>
-          {/* Left Column */}
-          <div className="w-1/3 space-y-6">
-            {shouldShowPhoto && (
-              <div className="text-center">
-                <img 
-                  src={resume.personal.photo} 
-                  className="w-32 h-32 rounded-full mx-auto object-cover shadow-lg" 
-                  alt="Foto de perfil"
-                />
-              </div>
-            )}
+        function addExperience() {
+            const container = document.getElementById('experienceContainer');
+            const id = experienceCount++;
             
-            <section>
-              <h2 className="preview-h2-sidebar" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
-                {config.name === 'Estados Unidos' ? 'Contact' : 
-                 config.name === 'Canadá' ? 'Contact' : 'Contacto'}
-              </h2>
-              <div className="space-y-2">
-                {resume.personal.address && <p className="preview-p-sidebar">{resume.personal.address}</p>}
-                {resume.personal.email && <p className="preview-p-sidebar">{resume.personal.email}</p>}
-                {resume.personal.phone && <p className="preview-p-sidebar">{resume.personal.phone}</p>}
-                {resume.personal.linkedin && (
-                  <p className="preview-p-sidebar" style={{ color: config.colors.accent }}>
-                    {resume.personal.linkedin}
-                  </p>
-                )}
-                {resume.personal.portfolio && (
-                  <p className="preview-p-sidebar" style={{ color: config.colors.accent }}>
-                    {resume.personal.portfolio}
-                  </p>
-                )}
-              </div>
-            </section>
-            
-            {hasContent(resume.skills) && (
-              <section>
-                <h2 className="preview-h2-sidebar" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
-                  {config.name === 'Estados Unidos' ? 'Skills' : 
-                   config.name === 'Canadá' ? 'Skills' : 'Habilidades'}
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {resume.skills.map((skill, index) => skill && (
-                    <span 
-                      key={index} 
-                      className="pill-small"
-                      style={{ backgroundColor: config.colors.primary + '20', color: config.colors.primary }}
-                    >
-                      {skill}
-                    </span>
-                  ))}
+            const div = document.createElement('div');
+            div.className = 'experience-item';
+            div.id = `exp-${id}`;
+            div.innerHTML = `
+                <button class="remove-btn" onclick="removeItem('exp-${id}')">×</button>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cargo</label>
+                        <input type="text" id="expTitle-${id}" placeholder="Desarrollador Senior">
+                    </div>
+                    <div class="form-group">
+                        <label>Empresa</label>
+                        <input type="text" id="expCompany-${id}" placeholder="Tech Company S.A.">
+                    </div>
                 </div>
-              </section>
-            )}
-            
-            {hasContent(resume.languages) && config.sections.includes('languages') && (
-              <section>
-                <h2 className="preview-h2-sidebar" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
-                  {config.name === 'Estados Unidos' ? 'Languages' : 
-                   config.name === 'Canadá' ? 'Languages' : 'Idiomas'}
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {resume.languages.map((language, index) => language && (
-                    <span 
-                      key={index} 
-                      className="pill-small"
-                      style={{ backgroundColor: config.colors.accent + '20', color: config.colors.accent }}
-                    >
-                      {language}
-                    </span>
-                  ))}
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha Inicio</label>
+                        <input type="text" id="expStart-${id}" placeholder="Enero 2020">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha Fin</label>
+                        <input type="text" id="expEnd-${id}" placeholder="Actualidad">
+                    </div>
                 </div>
-              </section>
-            )}
-          </div>
-          
-          {/* Right Column */}
-          <div className="w-2/3 space-y-6">
-            <header>
-              <h1 className="text-4xl font-bold mb-2" style={{ color: config.colors.primary }}>
-                {resume.personal.name || 'Tu Nombre'}
-              </h1>
-            </header>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="expDesc-${id}" placeholder="Describe tus responsabilidades y logros..."></textarea>
+                </div>
+            `;
             
-            {resume.summary && (
-              <section>
-                <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
-                  {config.name === 'Estados Unidos' ? 'Professional Summary' : 
-                   config.name === 'Canadá' ? 'Professional Summary' : 'Resumen Profesional'}
-                </h2>
-                <p className="preview-p">{resume.summary}</p>
-              </section>
-            )}
-            
-            {hasContent(resume.experience) && (
-              <section>
-                <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
-                  {config.name === 'Estados Unidos' ? 'Professional Experience' : 
-                   config.name === 'Canadá' ? 'Professional Experience' : 'Experiencia Profesional'}
-                </h2>
-                {resume.experience.map(exp => (
-                  <div key={exp.id} className="mb-4">
-                    <h3 className="font-bold text-lg" style={{ color: config.colors.secondary }}>
-                      {exp.title}
-                    </h3>
-                    <p className="italic text-sm font-medium">{exp.company}</p>
-                    <p className="text-xs text-gray-500 mb-2">{exp.startDate} - {exp.endDate}</p>
-                    <p className="preview-p whitespace-pre-line">{exp.description}</p>
-                  </div>
-                ))}
-              </section>
-            )}
-            
-            {hasContent(resume.education) && (
-              <section>
-                <h2 className="preview-h2" style={{ borderColor: config.colors.primary, color: config.colors.primary }}>
-                  {config.name === 'Estados Unidos' ? 'Education' : 
-                   config.name === 'Canadá' ? 'Education' : 'Educación'}
-                </h2>
-                {resume.education.map(edu => (
-                  <div key={edu.id} className="mb-4">
-                    <h3 className="font-bold" style={{ color: config.colors.secondary }}>
-                      {edu.degree}
-                    </h3>
-                    <p className="italic text-sm">{edu.institution}</p>
-                    <p className="text-xs text-gray-500">{edu.startDate} - {edu.endDate}</p>
-                  </div>
-                ))}
-              </section>
-            )}
-          </div>
-          
-          <style>{getPreviewStyles(config)}</style>
-        </div>
-      );
-    };
+            container.appendChild(div);
+        }
 
-    const getPreviewStyles = (config) => `
-      .preview-h2 { 
-        font-size: 1.125rem; 
-        font-weight: 700; 
-        border-bottom: 2px solid; 
-        padding-bottom: 4px; 
-        margin-bottom: 12px; 
-      }
-      .preview-h2-sidebar { 
-        font-size: 1rem; 
-        font-weight: 700; 
-        border-bottom: 2px solid; 
-        padding-bottom: 4px; 
-        margin-bottom: 12px; 
-      }
-      .preview-p { 
-        font-size: 0.875rem; 
-        line-height: 1.6; 
-        color: #374151; 
-        white-space: pre-wrap; 
-      }
-      .preview-p-sidebar { 
-        font-size: 0.875rem; 
-        line-height: 1.6; 
-        color: #374151; 
-        word-break: break-word; 
-      }
-      .pill { 
-        padding: 6px 12px; 
-        border-radius: 9999px; 
-        font-size: 0.75rem; 
-        font-weight: 500;
-      }
-      .pill-small { 
-        padding: 4px 8px; 
-        border-radius: 9999px; 
-        font-size: 0.7rem; 
-        font-weight: 500;
-      }
-    `;
+        function addEducation() {
+            const container = document.getElementById('educationContainer');
+            const id = educationCount++;
+            
+            const div = document.createElement('div');
+            div.className = 'education-item';
+            div.id = `edu-${id}`;
+            div.innerHTML = `
+                <button class="remove-btn" onclick="removeItem('edu-${id}')">×</button>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Título</label>
+                        <input type="text" id="eduTitle-${id}" placeholder="Ingeniería Informática">
+                    </div>
+                    <div class="form-group">
+                        <label>Institución</label>
+                        <input type="text" id="eduInstitution-${id}" placeholder="Universidad Complutense">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha Inicio</label>
+                        <input type="text" id="eduStart-${id}" placeholder="2016">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha Fin</label>
+                        <input type="text" id="eduEnd-${id}" placeholder="2020">
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(div);
+        }
 
-    // --- RENDER APP ---
-    ReactDOM.render(<App />, document.getElementById('root'));
-  </script>
+        function removeItem(id) {
+            document.getElementById(id).remove();
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const name = document.getElementById('fullName').value || 'Tu Nombre Aquí';
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const location = document.getElementById('location').value;
+            const linkedin = document.getElementById('linkedin').value;
+            const summary = document.getElementById('summary').value;
+            const skills = document.getElementById('skills').value;
+            const languages = document.getElementById('languages').value;
+            
+            let html = `
+                <div class="cv-header">
+                    ${photoData ? `<img src="${photoData}" class="photo-preview" alt="Foto">` : ''}
+                    <div class="cv-name">${name}</div>
+                    <div class="cv-contact">
+                        ${[email, phone, location].filter(Boolean).join(' • ')}
+                        ${linkedin ? `<br>${linkedin}` : ''}
+                    </div>
+                </div>
+            `;
+            
+            if (summary) {
+                html += `
+                    <div class="cv-section">
+                        <div class="cv-section-title">Resumen Profesional</div>
+                        <p>${summary}</p>
+                    </div>
+                `;
+            }
+            
+            // Experiencia
+            const experiences = [];
+            for (let i = 0; i < experienceCount; i++) {
+                const title = document.getElementById(`expTitle-${i}`)?.value;
+                const company = document.getElementById(`expCompany-${i}`)?.value;
+                const start = document.getElementById(`expStart-${i}`)?.value;
+                const end = document.getElementById(`expEnd-${i}`)?.value;
+                const desc = document.getElementById(`expDesc-${i}`)?.value;
+                
+                if (title || company) {
+                    experiences.push({ title, company, start, end, desc });
+                }
+            }
+            
+            if (experiences.length > 0) {
+                html += '<div class="cv-section"><div class="cv-section-title">Experiencia Laboral</div>';
+                experiences.forEach(exp => {
+                    html += `
+                        <div class="cv-item">
+                            <div class="cv-item-title">${exp.title || 'Cargo'}</div>
+                            <div class="cv-item-subtitle">${exp.company || 'Empresa'}</div>
+                            <div class="cv-item-date">${exp.start || ''} ${exp.start && exp.end ? '-' : ''} ${exp.end || ''}</div>
+                            ${exp.desc ? `<div class="cv-item-description">${exp.desc}</div>` : ''}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            // Educación
+            const educations = [];
+            for (let i = 0; i < educationCount; i++) {
+                const title = document.getElementById(`eduTitle-${i}`)?.value;
+                const institution = document.getElementById(`eduInstitution-${i}`)?.value;
+                const start = document.getElementById(`eduStart-${i}`)?.value;
+                const end = document.getElementById(`eduEnd-${i}`)?.value;
+                
+                if (title || institution) {
+                    educations.push({ title, institution, start, end });
+                }
+            }
+            
+            if (educations.length > 0) {
+                html += '<div class="cv-section"><div class="cv-section-title">Educación</div>';
+                educations.forEach(edu => {
+                    html += `
+                        <div class="cv-item">
+                            <div class="cv-item-title">${edu.title || 'Título'}</div>
+                            <div class="cv-item-subtitle">${edu.institution || 'Institución'}</div>
+                            <div class="cv-item-date">${edu.start || ''} ${edu.start && edu.end ? '-' : ''} ${edu.end || ''}</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            // Habilidades
+            if (skills) {
+                const skillList = skills.split(',').map(s => s.trim()).filter(Boolean);
+                if (skillList.length > 0) {
+                    html += '<div class="cv-section"><div class="cv-section-title">Habilidades</div><div class="skills-container">';
+                    skillList.forEach(skill => {
+                        html += `<span class="skill-tag">${skill}</span>`;
+                    });
+                    html += '</div></div>';
+                }
+            }
+            
+            // Idiomas
+            if (languages) {
+                const langList = languages.split(',').map(l => l.trim()).filter(Boolean);
+                if (langList.length > 0) {
+                    html += '<div class="cv-section"><div class="cv-section-title">Idiomas</div><div class="skills-container">';
+                    langList.forEach(lang => {
+                        html += `<span class="skill-tag">${lang}</span>`;
+                    });
+                    html += '</div></div>';
+                }
+            }
+            
+            document.getElementById('preview').innerHTML = html;
+        }
+
+        function resetForm() {
+            if (confirm('¿Estás seguro de que quieres borrar todo?')) {
+                document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+                document.getElementById('experienceContainer').innerHTML = '';
+                document.getElementById('educationContainer').innerHTML = '';
+                experienceCount = 0;
+                educationCount = 0;
+                photoData = null;
+                updatePreview();
+            }
+        }
+
+        // Agregar una experiencia y educación por defecto al cargar
+        window.addEventListener('load', () => {
+            addExperience();
+            addEducation();
+        });
+    </script>
 </body>
 </html>
