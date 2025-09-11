@@ -101,6 +101,12 @@
             gap: 15px;
         }
 
+        .form-row-three {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
         button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -154,6 +160,20 @@
             line-height: 1;
         }
 
+        /* Configuración de diseño */
+        .design-controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+
+        .design-controls h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.1em;
+        }
+
         /* Preview Styles */
         #preview {
             padding: 40px;
@@ -163,8 +183,10 @@
             min-height: 600px;
             max-height: 70vh;
             overflow-y: auto;
+            transition: all 0.3s;
         }
 
+        /* Base styles for CV */
         .cv-header {
             text-align: center;
             margin-bottom: 30px;
@@ -244,6 +266,169 @@
             margin-top: 20px;
         }
 
+        .photo-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 20px;
+            display: block;
+            border: 4px solid #667eea;
+        }
+
+        #photoInput {
+            display: none;
+        }
+
+        .photo-upload-btn {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.3s;
+        }
+
+        .photo-upload-btn:hover {
+            background: #e0e0e0;
+        }
+
+        /* Layout de dos columnas */
+        .cv-two-columns {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+
+        .cv-left-column {
+            background: #f8f9fa;
+            padding: 30px 20px;
+            border-radius: 10px;
+        }
+
+        .cv-right-column {
+            padding: 0 20px;
+        }
+
+        .cv-two-columns .cv-header {
+            grid-column: 1 / -1;
+            margin-bottom: 20px;
+        }
+
+        /* Estilos regionales */
+        
+        /* LATAM Style */
+        .region-latam .cv-header {
+            background: linear-gradient(135deg, #ff6b6b, #ff8787);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            border: none;
+        }
+
+        .region-latam .cv-name {
+            color: white;
+        }
+
+        .region-latam .cv-contact {
+            color: rgba(255,255,255,0.9);
+        }
+
+        .region-latam .cv-section-title {
+            border-bottom: 3px solid #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .region-latam .skill-tag {
+            background: linear-gradient(135deg, #ff6b6b, #ff8787);
+        }
+
+        /* USA Style */
+        .region-usa .cv-header {
+            border-bottom: 3px solid #2563eb;
+            background: #f8fafc;
+            padding: 20px;
+        }
+
+        .region-usa .cv-section-title {
+            border-bottom: 2px solid #2563eb;
+            color: #1e40af;
+            text-transform: uppercase;
+            font-size: 1.1em;
+            letter-spacing: 1px;
+        }
+
+        .region-usa .photo-preview {
+            display: none; /* En USA generalmente no se incluye foto */
+        }
+
+        .region-usa .skill-tag {
+            background: #2563eb;
+            border-radius: 5px;
+        }
+
+        /* Canada Style */
+        .region-canada .cv-header {
+            border-bottom: 3px solid #dc2626;
+            background: #fef2f2;
+        }
+
+        .region-canada .cv-section-title {
+            border-bottom: 2px solid #dc2626;
+            color: #b91c1c;
+        }
+
+        .region-canada .skill-tag {
+            background: #dc2626;
+        }
+
+        /* Europa Style */
+        .region-europa .cv-header {
+            border-bottom: 2px solid #059669;
+            background: #f0fdf4;
+        }
+
+        .region-europa .cv-section-title {
+            border-bottom: 1px solid #059669;
+            color: #047857;
+        }
+
+        .region-europa .skill-tag {
+            background: #059669;
+            border-radius: 3px;
+        }
+
+        .region-europa .cv-item {
+            border-left: 3px solid #d1fae5;
+            padding-left: 15px;
+        }
+
+        /* Tamaños de texto */
+        .text-small {
+            font-size: 0.85em;
+        }
+
+        .text-medium {
+            font-size: 1em;
+        }
+
+        .text-large {
+            font-size: 1.15em;
+        }
+
+        .text-small .cv-name {
+            font-size: 2.2em;
+        }
+
+        .text-medium .cv-name {
+            font-size: 2.5em;
+        }
+
+        .text-large .cv-name {
+            font-size: 2.8em;
+        }
+
         @media print {
             body {
                 background: white;
@@ -282,34 +467,10 @@
             .preview-section {
                 position: static;
             }
-        }
 
-        .photo-preview {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin: 0 auto 20px;
-            display: block;
-            border: 4px solid #667eea;
-        }
-
-        #photoInput {
-            display: none;
-        }
-
-        .photo-upload-btn {
-            display: inline-block;
-            background: #f0f0f0;
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            text-align: center;
-            transition: background 0.3s;
-        }
-
-        .photo-upload-btn:hover {
-            background: #e0e0e0;
+            .cv-two-columns {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -317,6 +478,37 @@
     <div class="container">
         <div class="form-section">
             <h1>✨ Generador de CV Profesional</h1>
+            
+            <!-- Controles de diseño -->
+            <div class="design-controls">
+                <h3>🎨 Configuración de Diseño</h3>
+                <div class="form-row-three">
+                    <div class="form-group">
+                        <label for="layoutSelect">Layout</label>
+                        <select id="layoutSelect">
+                            <option value="single">Una Columna</option>
+                            <option value="double">Dos Columnas</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="regionSelect">Región</label>
+                        <select id="regionSelect">
+                            <option value="latam">LATAM</option>
+                            <option value="usa">USA</option>
+                            <option value="canada">Canadá</option>
+                            <option value="europa">Europa</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="fontSizeSelect">Tamaño de Texto</label>
+                        <select id="fontSizeSelect">
+                            <option value="small">Pequeño</option>
+                            <option value="medium" selected>Mediano</option>
+                            <option value="large">Grande</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
             
             <h2>📝 Información Personal</h2>
             <div class="form-group">
@@ -352,6 +544,9 @@
                     📷 Subir Foto
                 </label>
                 <input type="file" id="photoInput" accept="image/*">
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    Nota: En USA generalmente no se incluye foto por políticas de no discriminación
+                </small>
             </div>
             
             <h2>👤 Resumen Profesional</h2>
@@ -403,6 +598,11 @@
 
         // Actualizar preview en tiempo real
         document.addEventListener('input', updatePreview);
+        
+        // Event listeners para los controles de diseño
+        document.getElementById('layoutSelect').addEventListener('change', updatePreview);
+        document.getElementById('regionSelect').addEventListener('change', updatePreview);
+        document.getElementById('fontSizeSelect').addEventListener('change', updatePreview);
         
         // Foto upload
         document.getElementById('photoInput').addEventListener('change', function(e) {
@@ -504,9 +704,21 @@
             const skills = document.getElementById('skills').value;
             const languages = document.getElementById('languages').value;
             
-            let html = `
+            const layout = document.getElementById('layoutSelect').value;
+            const region = document.getElementById('regionSelect').value;
+            const fontSize = document.getElementById('fontSizeSelect').value;
+            
+            // Aplicar clases de diseño
+            const preview = document.getElementById('preview');
+            preview.className = `region-${region} text-${fontSize} ${layout === 'double' ? 'cv-two-columns' : ''}`;
+            
+            let html = '';
+            
+            // Header
+            const showPhoto = region !== 'usa' && photoData; // USA no muestra foto
+            html += `
                 <div class="cv-header">
-                    ${photoData ? `<img src="${photoData}" class="photo-preview" alt="Foto">` : ''}
+                    ${showPhoto ? `<img src="${photoData}" class="photo-preview" alt="Foto">` : ''}
                     <div class="cv-name">${name}</div>
                     <div class="cv-contact">
                         ${[email, phone, location].filter(Boolean).join(' • ')}
@@ -515,16 +727,92 @@
                 </div>
             `;
             
-            if (summary) {
-                html += `
-                    <div class="cv-section">
-                        <div class="cv-section-title">Resumen Profesional</div>
-                        <p>${summary}</p>
-                    </div>
-                `;
+            if (layout === 'double') {
+                // Layout de dos columnas
+                html += '<div class="cv-left-column">';
+                
+                // Habilidades en columna izquierda
+                if (skills) {
+                    const skillList = skills.split(',').map(s => s.trim()).filter(Boolean);
+                    if (skillList.length > 0) {
+                        html += '<div class="cv-section"><div class="cv-section-title">Habilidades</div><div class="skills-container">';
+                        skillList.forEach(skill => {
+                            html += `<span class="skill-tag">${skill}</span>`;
+                        });
+                        html += '</div></div>';
+                    }
+                }
+                
+                // Idiomas en columna izquierda
+                if (languages) {
+                    const langList = languages.split(',').map(l => l.trim()).filter(Boolean);
+                    if (langList.length > 0) {
+                        html += '<div class="cv-section"><div class="cv-section-title">Idiomas</div><div class="skills-container">';
+                        langList.forEach(lang => {
+                            html += `<span class="skill-tag">${lang}</span>`;
+                        });
+                        html += '</div></div>';
+                    }
+                }
+                
+                html += '</div><div class="cv-right-column">';
+                
+                // Resumen en columna derecha
+                if (summary) {
+                    html += `
+                        <div class="cv-section">
+                            <div class="cv-section-title">Resumen Profesional</div>
+                            <p>${summary}</p>
+                        </div>
+                    `;
+                }
+                
+                // Experiencia y educación en columna derecha
+                html += getExperienceHTML() + getEducationHTML();
+                html += '</div>';
+                
+            } else {
+                // Layout de una columna
+                if (summary) {
+                    html += `
+                        <div class="cv-section">
+                            <div class="cv-section-title">Resumen Profesional</div>
+                            <p>${summary}</p>
+                        </div>
+                    `;
+                }
+                
+                html += getExperienceHTML() + getEducationHTML();
+                
+                // Habilidades
+                if (skills) {
+                    const skillList = skills.split(',').map(s => s.trim()).filter(Boolean);
+                    if (skillList.length > 0) {
+                        html += '<div class="cv-section"><div class="cv-section-title">Habilidades</div><div class="skills-container">';
+                        skillList.forEach(skill => {
+                            html += `<span class="skill-tag">${skill}</span>`;
+                        });
+                        html += '</div></div>';
+                    }
+                }
+                
+                // Idiomas
+                if (languages) {
+                    const langList = languages.split(',').map(l => l.trim()).filter(Boolean);
+                    if (langList.length > 0) {
+                        html += '<div class="cv-section"><div class="cv-section-title">Idiomas</div><div class="skills-container">';
+                        langList.forEach(lang => {
+                            html += `<span class="skill-tag">${lang}</span>`;
+                        });
+                        html += '</div></div>';
+                    }
+                }
             }
             
-            // Experiencia
+            document.getElementById('preview').innerHTML = html;
+        }
+        
+        function getExperienceHTML() {
             const experiences = [];
             for (let i = 0; i < experienceCount; i++) {
                 const title = document.getElementById(`expTitle-${i}`)?.value;
@@ -539,7 +827,7 @@
             }
             
             if (experiences.length > 0) {
-                html += '<div class="cv-section"><div class="cv-section-title">Experiencia Laboral</div>';
+                let html = '<div class="cv-section"><div class="cv-section-title">Experiencia Laboral</div>';
                 experiences.forEach(exp => {
                     html += `
                         <div class="cv-item">
@@ -551,9 +839,12 @@
                     `;
                 });
                 html += '</div>';
+                return html;
             }
-            
-            // Educación
+            return '';
+        }
+        
+        function getEducationHTML() {
             const educations = [];
             for (let i = 0; i < educationCount; i++) {
                 const title = document.getElementById(`eduTitle-${i}`)?.value;
@@ -567,7 +858,7 @@
             }
             
             if (educations.length > 0) {
-                html += '<div class="cv-section"><div class="cv-section-title">Educación</div>';
+                let html = '<div class="cv-section"><div class="cv-section-title">Educación</div>';
                 educations.forEach(edu => {
                     html += `
                         <div class="cv-item">
@@ -578,33 +869,9 @@
                     `;
                 });
                 html += '</div>';
+                return html;
             }
-            
-            // Habilidades
-            if (skills) {
-                const skillList = skills.split(',').map(s => s.trim()).filter(Boolean);
-                if (skillList.length > 0) {
-                    html += '<div class="cv-section"><div class="cv-section-title">Habilidades</div><div class="skills-container">';
-                    skillList.forEach(skill => {
-                        html += `<span class="skill-tag">${skill}</span>`;
-                    });
-                    html += '</div></div>';
-                }
-            }
-            
-            // Idiomas
-            if (languages) {
-                const langList = languages.split(',').map(l => l.trim()).filter(Boolean);
-                if (langList.length > 0) {
-                    html += '<div class="cv-section"><div class="cv-section-title">Idiomas</div><div class="skills-container">';
-                    langList.forEach(lang => {
-                        html += `<span class="skill-tag">${lang}</span>`;
-                    });
-                    html += '</div></div>';
-                }
-            }
-            
-            document.getElementById('preview').innerHTML = html;
+            return '';
         }
 
         function resetForm() {
@@ -612,6 +879,9 @@
                 document.querySelectorAll('input, textarea').forEach(el => el.value = '');
                 document.getElementById('experienceContainer').innerHTML = '';
                 document.getElementById('educationContainer').innerHTML = '';
+                document.getElementById('layoutSelect').selectedIndex = 0;
+                document.getElementById('regionSelect').selectedIndex = 0;
+                document.getElementById('fontSizeSelect').selectedIndex = 1;
                 experienceCount = 0;
                 educationCount = 0;
                 photoData = null;
